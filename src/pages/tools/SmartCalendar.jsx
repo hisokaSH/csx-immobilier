@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { useAuth } from '../../context/AuthContext';
 import {
   Calendar as CalendarIcon,
   Clock,
@@ -18,7 +17,10 @@ import {
   Edit2,
   Trash2,
   Bell,
-  Link2
+  Link2,
+  Copy,
+  ExternalLink,
+  Loader2
 } from 'lucide-react';
 
 const eventTypes = [
@@ -34,44 +36,53 @@ for (let h = 8; h <= 20; h++) {
   timeSlots.push(`${h.toString().padStart(2, '0')}:30`);
 }
 
+const STORAGE_KEY = 'csx_calendar_events';
+
 function SmartCalendar() {
-  const { user } = useAuth();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [events, setEvents] = useState([
-    {
-      id: 1,
-      title: 'Visite - Appartement T3 Nice',
-      type: 'visit',
-      date: new Date(),
-      time: '10:00',
-      duration: 60,
-      client: { name: 'Marie Dupont', phone: '06 12 34 56 78', email: 'marie@email.com' },
-      address: '15 Rue de la Paix, Nice',
-      notes: 'Client intéressé par vue mer',
-    },
-    {
-      id: 2,
-      title: 'Appel - Qualification lead',
-      type: 'call',
-      date: new Date(),
-      time: '14:30',
-      duration: 30,
-      client: { name: 'Jean Martin', phone: '06 98 76 54 32', email: 'jean@email.com' },
-    },
-    {
-      id: 3,
-      title: 'Visio - Présentation projet',
-      type: 'video',
-      date: new Date(Date.now() + 86400000),
-      time: '11:00',
-      duration: 45,
-      client: { name: 'Sophie Bernard', email: 'sophie@email.com' },
-    },
-  ]);
+  const [events, setEvents] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
-  const [bookingLink, setBookingLink] = useState(`${window.location.origin}/book/${user?.id?.slice(0, 8) || 'demo'}`);
+  const [userId, setUserId] = useState(null);
+  const [copied, setCopied] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Load events from localStorage
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setUserId(user.id);
+        }
+        
+        // Load events from localStorage
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          // Convert date strings back to Date objects
+          const loadedEvents = parsed.map(e => ({
+            ...e,
+            date: new Date(e.date),
+          }));
+          setEvents(loadedEvents);
+        }
+      } catch (err) {
+        console.error('Error loading events:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
+
+  // Save events to localStorage whenever they change
+  useEffect(() => {
+    if (!loading) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+    }
+  }, [events, loading]);
 
   const getDaysInMonth = (date) => {
     const year = date.getFullYear();
@@ -80,12 +91,12 @@ function SmartCalendar() {
     const lastDay = new Date(year, month + 1, 0);
     const days = [];
     
-    // Add empty days for padding
-    for (let i = 0; i < firstDay.getDay(); i++) {
+    // Add empty days for padding (start week on Monday)
+    const startDay = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
+    for (let i = 0; i < startDay; i++) {
       days.push(null);
     }
     
-    // Add actual days
     for (let i = 1; i <= lastDay.getDate(); i++) {
       days.push(new Date(year, month, i));
     }
@@ -97,31 +108,61 @@ function SmartCalendar() {
     if (!date) return [];
     return events.filter(event => 
       event.date.toDateString() === date.toDateString()
-    );
+    ).sort((a, b) => a.time.localeCompare(b.time));
   };
 
-  const formatDate = (date) => {
-    return date.toLocaleDateString('fr-FR', { 
-      weekday: 'long', 
-      day: 'numeric', 
-      month: 'long' 
-    });
+  const formatMonth = (date) => {
+    return date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
   };
 
   const navigateMonth = (direction) => {
-    setCurrentDate(prev => {
-      const newDate = new Date(prev);
-      newDate.setMonth(newDate.getMonth() + direction);
-      return newDate;
-    });
+    const newDate = new Date(currentDate);
+    newDate.setMonth(newDate.getMonth() + direction);
+    setCurrentDate(newDate);
   };
 
-  const copyBookingLink = () => {
-    navigator.clipboard.writeText(bookingLink);
-    alert('Lien copié !');
+  const handleSaveEvent = (eventData) => {
+    if (editingEvent) {
+      setEvents(prev => prev.map(e => 
+        e.id === editingEvent.id ? { ...eventData, id: e.id, date: new Date(eventData.date) } : e
+      ));
+    } else {
+      const newEvent = {
+        ...eventData,
+        id: Date.now(),
+        date: new Date(eventData.date),
+      };
+      setEvents(prev => [...prev, newEvent]);
+    }
+    setShowModal(false);
+    setEditingEvent(null);
   };
 
-  const dayEvents = getEventsForDate(selectedDate);
+  const handleDeleteEvent = (id) => {
+    if (confirm('Supprimer ce rendez-vous ?')) {
+      setEvents(prev => prev.filter(e => e.id !== id));
+    }
+  };
+
+  const handleEditEvent = (event) => {
+    setEditingEvent(event);
+    setShowModal(true);
+  };
+
+  const bookingLink = `${window.location.origin}/book/${userId?.slice(0, 8) || 'agent'}`;
+
+  const copyBookingLink = async () => {
+    try {
+      await navigator.clipboard.writeText(bookingLink);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Copy failed:', err);
+    }
+  };
+
+  const todayEvents = getEventsForDate(new Date());
+  const selectedDateEvents = getEventsForDate(selectedDate);
 
   return (
     <div style={{ maxWidth: '1200px' }}>
@@ -151,49 +192,79 @@ function SmartCalendar() {
               </p>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <button
-              onClick={copyBookingLink}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '12px 20px',
-                background: 'var(--bg-tertiary)',
-                border: '1px solid var(--border-color)',
-                borderRadius: '10px',
-                color: 'var(--text-primary)',
-                fontSize: '14px',
-                cursor: 'pointer',
-              }}
-            >
-              <Link2 size={18} />
-              Lien de réservation
-            </button>
-            <button
-              onClick={() => { setEditingEvent(null); setShowModal(true); }}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '12px 20px',
-                background: 'var(--gold)',
-                border: 'none',
-                borderRadius: '10px',
-                color: 'var(--bg-primary)',
-                fontWeight: '600',
-                fontSize: '14px',
-                cursor: 'pointer',
-              }}
-            >
-              <Plus size={18} />
-              Nouveau RDV
-            </button>
-          </div>
+          <button
+            onClick={() => { setEditingEvent(null); setShowModal(true); }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '12px 20px',
+              background: 'linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%)',
+              border: 'none',
+              borderRadius: '10px',
+              color: 'var(--bg-primary)',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: 'pointer',
+            }}
+          >
+            <Plus size={18} />
+            Nouveau RDV
+          </button>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '350px 1fr', gap: '24px' }}>
+      {/* Booking Link */}
+      <div style={{
+        padding: '16px 20px',
+        background: 'var(--bg-card)',
+        border: '1px solid var(--border-color)',
+        borderRadius: '12px',
+        marginBottom: '24px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '16px',
+        flexWrap: 'wrap',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <Link2 size={18} style={{ color: 'var(--gold)' }} />
+          <span style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
+            Lien de réservation (à partager avec vos clients)
+          </span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <code style={{
+            padding: '8px 12px',
+            background: 'var(--bg-tertiary)',
+            borderRadius: '6px',
+            fontSize: '12px',
+            color: 'var(--text-muted)',
+          }}>
+            {bookingLink}
+          </code>
+          <button
+            onClick={copyBookingLink}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 12px',
+              background: copied ? 'rgba(34, 197, 94, 0.1)' : 'var(--bg-tertiary)',
+              border: `1px solid ${copied ? 'rgba(34, 197, 94, 0.2)' : 'var(--border-color)'}`,
+              borderRadius: '6px',
+              color: copied ? '#22c55e' : 'var(--text-secondary)',
+              fontSize: '12px',
+              cursor: 'pointer',
+            }}
+          >
+            {copied ? <Check size={14} /> : <Copy size={14} />}
+            {copied ? 'Copié' : 'Copier'}
+          </button>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '24px' }}>
         {/* Calendar */}
         <div style={{
           padding: '24px',
@@ -206,44 +277,36 @@ function SmartCalendar() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            marginBottom: '24px',
+            marginBottom: '20px',
           }}>
             <button
               onClick={() => navigateMonth(-1)}
               style={{
-                width: '36px',
-                height: '36px',
+                padding: '8px',
                 background: 'var(--bg-tertiary)',
                 border: '1px solid var(--border-color)',
                 borderRadius: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                color: 'var(--text-secondary)',
                 cursor: 'pointer',
-                color: 'var(--text-primary)',
               }}
             >
-              <ChevronLeft size={18} />
+              <ChevronLeft size={20} />
             </button>
-            <h3 style={{ fontSize: '16px', fontWeight: '600', textTransform: 'capitalize' }}>
-              {currentDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
+            <h3 style={{ fontSize: '18px', fontWeight: '600', textTransform: 'capitalize' }}>
+              {formatMonth(currentDate)}
             </h3>
             <button
               onClick={() => navigateMonth(1)}
               style={{
-                width: '36px',
-                height: '36px',
+                padding: '8px',
                 background: 'var(--bg-tertiary)',
                 border: '1px solid var(--border-color)',
                 borderRadius: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                color: 'var(--text-secondary)',
                 cursor: 'pointer',
-                color: 'var(--text-primary)',
               }}
             >
-              <ChevronRight size={18} />
+              <ChevronRight size={20} />
             </button>
           </div>
 
@@ -254,282 +317,167 @@ function SmartCalendar() {
             gap: '4px',
             marginBottom: '8px',
           }}>
-            {['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'].map(day => (
+            {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map(day => (
               <div key={day} style={{
                 textAlign: 'center',
+                padding: '8px',
                 fontSize: '12px',
                 fontWeight: '600',
                 color: 'var(--text-muted)',
-                padding: '8px 0',
               }}>
                 {day}
               </div>
             ))}
           </div>
 
-          {/* Days Grid */}
+          {/* Calendar Grid */}
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(7, 1fr)',
             gap: '4px',
           }}>
             {getDaysInMonth(currentDate).map((day, idx) => {
+              const dayEvents = day ? getEventsForDate(day) : [];
               const isToday = day && day.toDateString() === new Date().toDateString();
               const isSelected = day && day.toDateString() === selectedDate.toDateString();
-              const dayEventsCount = day ? getEventsForDate(day).length : 0;
 
               return (
-                <button
+                <div
                   key={idx}
                   onClick={() => day && setSelectedDate(day)}
-                  disabled={!day}
                   style={{
                     aspectRatio: '1',
+                    padding: '4px',
                     background: isSelected ? 'var(--gold)' : isToday ? 'rgba(212, 175, 55, 0.1)' : 'transparent',
                     border: isToday && !isSelected ? '1px solid var(--gold)' : '1px solid transparent',
                     borderRadius: '8px',
-                    color: isSelected ? 'var(--bg-primary)' : day ? 'var(--text-primary)' : 'transparent',
-                    fontWeight: isToday || isSelected ? '600' : '400',
-                    fontSize: '14px',
                     cursor: day ? 'pointer' : 'default',
-                    position: 'relative',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'flex-start',
+                    gap: '2px',
                   }}
                 >
-                  {day?.getDate()}
-                  {dayEventsCount > 0 && !isSelected && (
-                    <div style={{
-                      position: 'absolute',
-                      bottom: '4px',
-                      left: '50%',
-                      transform: 'translateX(-50%)',
-                      display: 'flex',
-                      gap: '2px',
-                    }}>
-                      {[...Array(Math.min(dayEventsCount, 3))].map((_, i) => (
-                        <div key={i} style={{
-                          width: '4px',
-                          height: '4px',
-                          borderRadius: '50%',
-                          background: 'var(--gold)',
-                        }} />
-                      ))}
-                    </div>
+                  {day && (
+                    <>
+                      <span style={{
+                        fontSize: '14px',
+                        fontWeight: isToday || isSelected ? '600' : '400',
+                        color: isSelected ? 'var(--bg-primary)' : 'var(--text-primary)',
+                      }}>
+                        {day.getDate()}
+                      </span>
+                      {dayEvents.length > 0 && (
+                        <div style={{ display: 'flex', gap: '2px' }}>
+                          {dayEvents.slice(0, 3).map((event, i) => {
+                            const type = eventTypes.find(t => t.id === event.type);
+                            return (
+                              <div
+                                key={i}
+                                style={{
+                                  width: '6px',
+                                  height: '6px',
+                                  borderRadius: '50%',
+                                  background: type?.color || 'var(--gold)',
+                                }}
+                              />
+                            );
+                          })}
+                        </div>
+                      )}
+                    </>
                   )}
-                </button>
+                </div>
               );
             })}
           </div>
-
-          {/* Upcoming Reminders */}
-          <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid var(--border-color)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-              <Bell size={16} style={{ color: 'var(--gold)' }} />
-              <span style={{ fontSize: '14px', fontWeight: '600' }}>Rappels</span>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {events.slice(0, 3).map(event => (
-                <div key={event.id} style={{
-                  padding: '10px 12px',
-                  background: 'var(--bg-tertiary)',
-                  borderRadius: '8px',
-                  fontSize: '13px',
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{
-                      width: '8px',
-                      height: '8px',
-                      borderRadius: '50%',
-                      background: eventTypes.find(t => t.id === event.type)?.color,
-                    }} />
-                    <span style={{ fontWeight: '500' }}>{event.time}</span>
-                    <span style={{ color: 'var(--text-muted)' }}>-</span>
-                    <span style={{ color: 'var(--text-secondary)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {event.client?.name}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
 
-        {/* Day View */}
+        {/* Events for Selected Date */}
         <div style={{
           padding: '24px',
           background: 'var(--bg-card)',
           border: '1px solid var(--border-color)',
           borderRadius: '16px',
         }}>
-          <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '24px', textTransform: 'capitalize' }}>
-            {formatDate(selectedDate)}
+          <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '20px' }}>
+            {selectedDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
           </h3>
 
-          {dayEvents.length === 0 ? (
+          {selectedDateEvents.length === 0 ? (
             <div style={{
-              padding: '60px 20px',
+              padding: '40px 20px',
               textAlign: 'center',
               color: 'var(--text-muted)',
             }}>
-              <CalendarIcon size={48} style={{ opacity: 0.3, marginBottom: '16px' }} />
-              <p style={{ fontSize: '15px' }}>Aucun rendez-vous ce jour</p>
+              <CalendarIcon size={32} style={{ marginBottom: '12px', opacity: 0.5 }} />
+              <p style={{ fontSize: '14px' }}>Aucun rendez-vous ce jour</p>
               <button
                 onClick={() => { setEditingEvent(null); setShowModal(true); }}
                 style={{
-                  marginTop: '16px',
-                  padding: '10px 20px',
+                  marginTop: '12px',
+                  padding: '8px 16px',
                   background: 'var(--bg-tertiary)',
                   border: '1px solid var(--border-color)',
-                  borderRadius: '8px',
-                  color: 'var(--text-primary)',
-                  fontSize: '14px',
+                  borderRadius: '6px',
+                  color: 'var(--text-secondary)',
+                  fontSize: '13px',
                   cursor: 'pointer',
                 }}
               >
-                Ajouter un RDV
+                + Ajouter un RDV
               </button>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {dayEvents.map(event => {
-                const eventType = eventTypes.find(t => t.id === event.type);
-                const EventIcon = eventType?.icon || CalendarIcon;
-
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {selectedDateEvents.map(event => {
+                const type = eventTypes.find(t => t.id === event.type);
+                const TypeIcon = type?.icon || CalendarIcon;
+                
                 return (
-                  <div
-                    key={event.id}
-                    style={{
-                      padding: '20px',
-                      background: 'var(--bg-tertiary)',
-                      borderRadius: '12px',
-                      borderLeft: `4px solid ${eventType?.color}`,
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <div style={{
-                          width: '40px',
-                          height: '40px',
-                          background: `${eventType?.color}20`,
-                          borderRadius: '10px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}>
-                          <EventIcon size={20} style={{ color: eventType?.color }} />
-                        </div>
-                        <div>
-                          <h4 style={{ fontSize: '15px', fontWeight: '600' }}>{event.title}</h4>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
-                            <Clock size={14} style={{ color: 'var(--text-muted)' }} />
-                            <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                              {event.time} ({event.duration} min)
-                            </span>
-                          </div>
-                        </div>
+                  <div key={event.id} style={{
+                    padding: '16px',
+                    background: 'var(--bg-tertiary)',
+                    borderRadius: '12px',
+                    borderLeft: `4px solid ${type?.color || 'var(--gold)'}`,
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <TypeIcon size={16} style={{ color: type?.color }} />
+                        <span style={{ fontWeight: '600', fontSize: '14px' }}>{event.title}</span>
                       </div>
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        <button style={{
-                          width: '32px',
-                          height: '32px',
-                          background: 'var(--bg-card)',
-                          border: '1px solid var(--border-color)',
-                          borderRadius: '6px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          cursor: 'pointer',
-                          color: 'var(--text-muted)',
-                        }}>
+                      <div style={{ display: 'flex', gap: '4px' }}>
+                        <button
+                          onClick={() => handleEditEvent(event)}
+                          style={{ padding: '4px', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+                        >
                           <Edit2 size={14} />
                         </button>
-                        <button style={{
-                          width: '32px',
-                          height: '32px',
-                          background: 'var(--bg-card)',
-                          border: '1px solid var(--border-color)',
-                          borderRadius: '6px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          cursor: 'pointer',
-                          color: '#ef4444',
-                        }}>
+                        <button
+                          onClick={() => handleDeleteEvent(event.id)}
+                          style={{ padding: '4px', background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer' }}
+                        >
                           <Trash2 size={14} />
                         </button>
                       </div>
                     </div>
-
-                    {/* Client Info */}
-                    {event.client && (
-                      <div style={{
-                        padding: '12px',
-                        background: 'var(--bg-card)',
-                        borderRadius: '8px',
-                        marginBottom: '12px',
-                      }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                          <User size={14} style={{ color: 'var(--text-muted)' }} />
-                          <span style={{ fontSize: '14px', fontWeight: '500' }}>{event.client.name}</span>
-                        </div>
-                        <div style={{ display: 'flex', gap: '16px' }}>
-                          {event.client.phone && (
-                            <a href={`tel:${event.client.phone}`} style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '6px',
-                              fontSize: '13px',
-                              color: 'var(--text-muted)',
-                              textDecoration: 'none',
-                            }}>
-                              <Phone size={12} />
-                              {event.client.phone}
-                            </a>
-                          )}
-                          {event.client.email && (
-                            <a href={`mailto:${event.client.email}`} style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '6px',
-                              fontSize: '13px',
-                              color: 'var(--text-muted)',
-                              textDecoration: 'none',
-                            }}>
-                              <Mail size={12} />
-                              {event.client.email}
-                            </a>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Address */}
-                    {event.address && (
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        fontSize: '13px',
-                        color: 'var(--text-secondary)',
-                      }}>
-                        <MapPin size={14} style={{ color: 'var(--text-muted)' }} />
-                        {event.address}
-                      </div>
-                    )}
-
-                    {/* Notes */}
-                    {event.notes && (
-                      <p style={{
-                        marginTop: '12px',
-                        padding: '10px',
-                        background: 'rgba(212, 175, 55, 0.05)',
-                        borderRadius: '6px',
-                        fontSize: '13px',
-                        color: 'var(--text-secondary)',
-                        fontStyle: 'italic',
-                      }}>
-                        {event.notes}
-                      </p>
-                    )}
+                    
+                    <div style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Clock size={12} /> {event.time} ({event.duration || 30} min)
+                      </span>
+                      {event.client?.name && (
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <User size={12} /> {event.client.name}
+                        </span>
+                      )}
+                      {event.address && (
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <MapPin size={12} /> {event.address}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 );
               })}
@@ -538,186 +486,310 @@ function SmartCalendar() {
         </div>
       </div>
 
-      {/* New Event Modal */}
+      {/* Event Modal */}
       {showModal && (
+        <EventModal
+          event={editingEvent}
+          selectedDate={selectedDate}
+          onSave={handleSaveEvent}
+          onClose={() => { setShowModal(false); setEditingEvent(null); }}
+        />
+      )}
+
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+      `}</style>
+    </div>
+  );
+}
+
+// Event Modal Component
+function EventModal({ event, selectedDate, onSave, onClose }) {
+  const [formData, setFormData] = useState({
+    title: event?.title || '',
+    type: event?.type || 'visit',
+    date: event?.date?.toISOString().split('T')[0] || selectedDate.toISOString().split('T')[0],
+    time: event?.time || '10:00',
+    duration: event?.duration || 60,
+    client: event?.client || { name: '', phone: '', email: '' },
+    address: event?.address || '',
+    notes: event?.notes || '',
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!formData.title || !formData.date || !formData.time) {
+      alert('Veuillez remplir les champs obligatoires');
+      return;
+    }
+    onSave(formData);
+  };
+
+  return (
+    <div style={{
+      position: 'fixed',
+      inset: 0,
+      background: 'rgba(0,0,0,0.7)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000,
+      padding: '20px',
+    }}>
+      <div style={{
+        width: '100%',
+        maxWidth: '500px',
+        background: 'var(--bg-card)',
+        borderRadius: '16px',
+        maxHeight: '90vh',
+        overflow: 'auto',
+      }}>
         <div style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(0,0,0,0.8)',
+          padding: '20px',
+          borderBottom: '1px solid var(--border-color)',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-        }} onClick={() => setShowModal(false)}>
-          <div
-            style={{
-              width: '500px',
-              background: 'var(--bg-card)',
-              borderRadius: '16px',
-              overflow: 'hidden',
-            }}
-            onClick={e => e.stopPropagation()}
+          justifyContent: 'space-between',
+        }}>
+          <h3 style={{ fontSize: '18px', fontWeight: '600' }}>
+            {event ? 'Modifier le RDV' : 'Nouveau rendez-vous'}
+          </h3>
+          <button
+            onClick={onClose}
+            style={{ padding: '8px', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
           >
-            <div style={{
-              padding: '20px 24px',
-              borderBottom: '1px solid var(--border-color)',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}>
-              <h3 style={{ fontSize: '18px', fontWeight: '600' }}>Nouveau rendez-vous</h3>
-              <button onClick={() => setShowModal(false)} style={{
-                background: 'none',
-                border: 'none',
-                color: 'var(--text-muted)',
-                cursor: 'pointer',
-                fontSize: '20px',
-              }}>×</button>
-            </div>
+            <X size={20} />
+          </button>
+        </div>
 
-            <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              {/* Event Type */}
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '8px' }}>
-                  Type
-                </label>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  {eventTypes.map(type => (
-                    <button key={type.id} style={{
-                      flex: 1,
-                      padding: '12px',
-                      background: 'var(--bg-tertiary)',
-                      border: '1px solid var(--border-color)',
-                      borderRadius: '8px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: '6px',
-                      cursor: 'pointer',
-                      color: 'var(--text-primary)',
-                    }}>
-                      <type.icon size={20} style={{ color: type.color }} />
-                      <span style={{ fontSize: '12px' }}>{type.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Title */}
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '8px' }}>
-                  Titre
-                </label>
-                <input
-                  type="text"
-                  placeholder="Ex: Visite appartement T3"
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    background: 'var(--bg-tertiary)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: '8px',
-                    color: 'var(--text-primary)',
-                    fontSize: '14px',
-                  }}
-                />
-              </div>
-
-              {/* Date & Time */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '8px' }}>
-                    Date
-                  </label>
-                  <input
-                    type="date"
-                    defaultValue={selectedDate.toISOString().split('T')[0]}
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      background: 'var(--bg-tertiary)',
-                      border: '1px solid var(--border-color)',
-                      borderRadius: '8px',
-                      color: 'var(--text-primary)',
-                      fontSize: '14px',
-                    }}
-                  />
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '8px' }}>
-                    Heure
-                  </label>
-                  <select style={{
-                    width: '100%',
-                    padding: '12px',
-                    background: 'var(--bg-tertiary)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: '8px',
-                    color: 'var(--text-primary)',
-                    fontSize: '14px',
-                  }}>
-                    {timeSlots.map(slot => (
-                      <option key={slot} value={slot}>{slot}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Client */}
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '8px' }}>
-                  Client
-                </label>
-                <input
-                  type="text"
-                  placeholder="Nom du client"
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    background: 'var(--bg-tertiary)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: '8px',
-                    color: 'var(--text-primary)',
-                    fontSize: '14px',
-                  }}
-                />
-              </div>
-            </div>
-
-            <div style={{
-              padding: '16px 24px',
-              borderTop: '1px solid var(--border-color)',
-              display: 'flex',
-              justifyContent: 'flex-end',
-              gap: '12px',
-            }}>
-              <button onClick={() => setShowModal(false)} style={{
-                padding: '10px 20px',
+        <form onSubmit={handleSubmit} style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '6px' }}>
+              Titre *
+            </label>
+            <input
+              type="text"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              placeholder="Ex: Visite appartement T3"
+              style={{
+                width: '100%',
+                padding: '12px',
                 background: 'var(--bg-tertiary)',
                 border: '1px solid var(--border-color)',
                 borderRadius: '8px',
                 color: 'var(--text-primary)',
                 fontSize: '14px',
-                cursor: 'pointer',
-              }}>
-                Annuler
-              </button>
-              <button style={{
-                padding: '10px 20px',
-                background: 'var(--gold)',
-                border: 'none',
-                borderRadius: '8px',
-                color: 'var(--bg-primary)',
-                fontWeight: '600',
-                fontSize: '14px',
-                cursor: 'pointer',
-              }}>
-                Créer
-              </button>
+              }}
+            />
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '6px' }}>
+              Type
+            </label>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {eventTypes.map(type => (
+                <button
+                  key={type.id}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, type: type.id })}
+                  style={{
+                    flex: 1,
+                    padding: '10px',
+                    background: formData.type === type.id ? type.color : 'var(--bg-tertiary)',
+                    border: '1px solid ' + (formData.type === type.id ? type.color : 'var(--border-color)'),
+                    borderRadius: '8px',
+                    color: formData.type === type.id ? 'white' : 'var(--text-secondary)',
+                    fontSize: '12px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {type.label}
+                </button>
+              ))}
             </div>
           </div>
-        </div>
-      )}
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '6px' }}>Date *</label>
+              <input
+                type="date"
+                value={formData.date}
+                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  background: 'var(--bg-tertiary)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '8px',
+                  color: 'var(--text-primary)',
+                  fontSize: '14px',
+                }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '6px' }}>Heure *</label>
+              <select
+                value={formData.time}
+                onChange={(e) => setFormData({ ...formData, time: e.target.value })}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  background: 'var(--bg-tertiary)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '8px',
+                  color: 'var(--text-primary)',
+                  fontSize: '14px',
+                }}
+              >
+                {timeSlots.map(slot => (
+                  <option key={slot} value={slot}>{slot}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '6px' }}>Durée</label>
+              <select
+                value={formData.duration}
+                onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) })}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  background: 'var(--bg-tertiary)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '8px',
+                  color: 'var(--text-primary)',
+                  fontSize: '14px',
+                }}
+              >
+                <option value={15}>15 min</option>
+                <option value={30}>30 min</option>
+                <option value={45}>45 min</option>
+                <option value={60}>1h</option>
+                <option value={90}>1h30</option>
+                <option value={120}>2h</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '6px' }}>
+              Client
+            </label>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              <input
+                type="text"
+                value={formData.client.name}
+                onChange={(e) => setFormData({ ...formData, client: { ...formData.client, name: e.target.value } })}
+                placeholder="Nom"
+                style={{
+                  padding: '10px',
+                  background: 'var(--bg-tertiary)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '8px',
+                  color: 'var(--text-primary)',
+                  fontSize: '13px',
+                }}
+              />
+              <input
+                type="tel"
+                value={formData.client.phone}
+                onChange={(e) => setFormData({ ...formData, client: { ...formData.client, phone: e.target.value } })}
+                placeholder="Téléphone"
+                style={{
+                  padding: '10px',
+                  background: 'var(--bg-tertiary)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '8px',
+                  color: 'var(--text-primary)',
+                  fontSize: '13px',
+                }}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '6px' }}>
+              Adresse
+            </label>
+            <input
+              type="text"
+              value={formData.address}
+              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+              placeholder="Lieu du rendez-vous"
+              style={{
+                width: '100%',
+                padding: '12px',
+                background: 'var(--bg-tertiary)',
+                border: '1px solid var(--border-color)',
+                borderRadius: '8px',
+                color: 'var(--text-primary)',
+                fontSize: '14px',
+              }}
+            />
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '6px' }}>
+              Notes
+            </label>
+            <textarea
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              placeholder="Notes internes..."
+              rows={3}
+              style={{
+                width: '100%',
+                padding: '12px',
+                background: 'var(--bg-tertiary)',
+                border: '1px solid var(--border-color)',
+                borderRadius: '8px',
+                color: 'var(--text-primary)',
+                fontSize: '14px',
+                resize: 'vertical',
+              }}
+            />
+          </div>
+
+          <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+            <button
+              type="button"
+              onClick={onClose}
+              style={{
+                flex: 1,
+                padding: '14px',
+                background: 'var(--bg-tertiary)',
+                border: '1px solid var(--border-color)',
+                borderRadius: '10px',
+                color: 'var(--text-secondary)',
+                fontSize: '14px',
+                fontWeight: '500',
+                cursor: 'pointer',
+              }}
+            >
+              Annuler
+            </button>
+            <button
+              type="submit"
+              style={{
+                flex: 1,
+                padding: '14px',
+                background: 'linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%)',
+                border: 'none',
+                borderRadius: '10px',
+                color: 'var(--bg-primary)',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer',
+              }}
+            >
+              {event ? 'Enregistrer' : 'Créer le RDV'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

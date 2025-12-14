@@ -1,88 +1,182 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   Image,
   Wand2,
   Sun,
   Contrast,
   Palette,
-  Trash2,
   Download,
   Upload,
   RefreshCw,
-  Sofa,
   Loader2,
-  Check,
+  ZoomIn,
+  Trash2,
+  RotateCw,
+  FlipHorizontal,
   Sparkles,
-  ZoomIn
+  Info
 } from 'lucide-react';
 
-const enhancements = [
-  { id: 'auto', name: 'Auto-amélioration', icon: Wand2, description: 'Optimisation automatique' },
-  { id: 'hdr', name: 'HDR', icon: Sun, description: 'Plus de détails' },
-  { id: 'brightness', name: 'Luminosité', icon: Sun, description: 'Éclaircir les pièces sombres' },
-  { id: 'contrast', name: 'Contraste', icon: Contrast, description: 'Plus de profondeur' },
-  { id: 'colors', name: 'Couleurs', icon: Palette, description: 'Couleurs vibrantes' },
-  { id: 'staging', name: 'Virtual staging', icon: Sofa, description: 'Meubler virtuellement', premium: true },
-  { id: 'declutter', name: 'Désencombrer', icon: Trash2, description: 'Retirer objets', premium: true },
-  { id: 'sky', name: 'Ciel bleu', icon: Sparkles, description: 'Remplacer ciel gris', premium: true },
+// Real image adjustments using Canvas
+const applyFilters = (canvas, ctx, image, filters) => {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  // Apply transformations
+  ctx.save();
+  ctx.translate(canvas.width / 2, canvas.height / 2);
+  ctx.rotate((filters.rotation * Math.PI) / 180);
+  ctx.scale(filters.flipH ? -1 : 1, 1);
+  ctx.translate(-canvas.width / 2, -canvas.height / 2);
+  
+  // Build CSS filter string
+  const filterStr = `
+    brightness(${filters.brightness}%)
+    contrast(${filters.contrast}%)
+    saturate(${filters.saturation}%)
+    sepia(${filters.warmth}%)
+    blur(${filters.blur}px)
+  `;
+  ctx.filter = filterStr;
+  
+  ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+  ctx.restore();
+};
+
+const defaultFilters = {
+  brightness: 100,
+  contrast: 100,
+  saturation: 100,
+  warmth: 0,
+  blur: 0,
+  rotation: 0,
+  flipH: false,
+};
+
+const presets = [
+  { name: 'Original', filters: { ...defaultFilters } },
+  { name: 'Lumineux', filters: { ...defaultFilters, brightness: 120, contrast: 105 } },
+  { name: 'HDR', filters: { ...defaultFilters, brightness: 105, contrast: 130, saturation: 120 } },
+  { name: 'Chaleureux', filters: { ...defaultFilters, warmth: 20, saturation: 110 } },
+  { name: 'Immobilier', filters: { ...defaultFilters, brightness: 110, contrast: 110, saturation: 105 } },
+  { name: 'Éclatant', filters: { ...defaultFilters, brightness: 108, saturation: 130, contrast: 108 } },
+  { name: 'Naturel', filters: { ...defaultFilters, brightness: 102, contrast: 95, saturation: 95 } },
 ];
 
 function PhotoEnhancement() {
   const [images, setImages] = useState([]);
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [filters, setFilters] = useState({ ...defaultFilters });
   const [processing, setProcessing] = useState(false);
-  const [selectedEnhancements, setSelectedEnhancements] = useState(['auto']);
-  const [beforeAfter, setBeforeAfter] = useState(false);
-  const [sliderPosition, setSliderPosition] = useState(50);
+  const [showOriginal, setShowOriginal] = useState(false);
+  
+  const canvasRef = useRef(null);
+  const originalCanvasRef = useRef(null);
   const fileInputRef = useRef(null);
+  const imageRef = useRef(null);
 
-  const handleFileSelect = (e) => {
-    const files = Array.from(e.target.files);
-    const newImages = files.map(file => ({
-      id: Date.now() + Math.random(),
-      file,
-      preview: URL.createObjectURL(file),
-      enhanced: null,
-      status: 'pending',
-    }));
-    setImages([...images, ...newImages]);
-    if (!selectedImage && newImages.length > 0) {
-      setSelectedImage(newImages[0]);
+  const selectedImage = images[selectedIndex];
+
+  // Redraw canvas when filters change
+  useEffect(() => {
+    if (selectedImage && canvasRef.current && imageRef.current) {
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d');
+      applyFilters(canvas, ctx, imageRef.current, filters);
     }
+  }, [filters, selectedImage]);
+
+  const handleFileSelect = useCallback((e) => {
+    const files = Array.from(e.target.files);
+    
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new window.Image();
+        img.onload = () => {
+          setImages(prev => [...prev, {
+            id: Date.now() + Math.random(),
+            name: file.name,
+            src: event.target.result,
+            width: img.width,
+            height: img.height,
+          }]);
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+    
+    e.target.value = '';
+  }, []);
+
+  // Load image into canvas when selected
+  useEffect(() => {
+    if (selectedImage) {
+      const img = new window.Image();
+      img.onload = () => {
+        imageRef.current = img;
+        
+        // Set canvas size (max 1200px width)
+        const maxWidth = 1200;
+        const scale = img.width > maxWidth ? maxWidth / img.width : 1;
+        const width = img.width * scale;
+        const height = img.height * scale;
+        
+        // Main canvas
+        if (canvasRef.current) {
+          canvasRef.current.width = width;
+          canvasRef.current.height = height;
+          const ctx = canvasRef.current.getContext('2d');
+          applyFilters(canvasRef.current, ctx, img, filters);
+        }
+        
+        // Original canvas (for comparison)
+        if (originalCanvasRef.current) {
+          originalCanvasRef.current.width = width;
+          originalCanvasRef.current.height = height;
+          const octx = originalCanvasRef.current.getContext('2d');
+          octx.drawImage(img, 0, 0, width, height);
+        }
+      };
+      img.src = selectedImage.src;
+      setFilters({ ...defaultFilters });
+    }
+  }, [selectedImage?.id]);
+
+  const updateFilter = (key, value) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
   };
 
-  const toggleEnhancement = (id) => {
-    setSelectedEnhancements(prev =>
-      prev.includes(id)
-        ? prev.filter(e => e !== id)
-        : [...prev, id]
-    );
+  const applyPreset = (preset) => {
+    setFilters({ ...preset.filters });
   };
 
-  const processImage = async () => {
-    if (!selectedImage) return;
-    
-    setProcessing(true);
-    
-    // Simulate AI processing
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    
-    // In real app, this would call an AI service
-    setImages(prev => prev.map(img =>
-      img.id === selectedImage.id
-        ? { ...img, enhanced: img.preview, status: 'done' }
-        : img
-    ));
-    setSelectedImage(prev => ({ ...prev, enhanced: prev.preview, status: 'done' }));
-    setBeforeAfter(true);
-    setProcessing(false);
+  const resetFilters = () => {
+    setFilters({ ...defaultFilters });
   };
 
-  const handleSliderMove = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const percentage = (x / rect.width) * 100;
-    setSliderPosition(Math.max(0, Math.min(100, percentage)));
+  const rotateImage = () => {
+    setFilters(prev => ({ ...prev, rotation: (prev.rotation + 90) % 360 }));
+  };
+
+  const flipImage = () => {
+    setFilters(prev => ({ ...prev, flipH: !prev.flipH }));
+  };
+
+  const downloadImage = () => {
+    if (!canvasRef.current) return;
+    
+    const link = document.createElement('a');
+    link.download = `enhanced_${selectedImage?.name || 'image.jpg'}`;
+    link.href = canvasRef.current.toDataURL('image/jpeg', 0.95);
+    link.click();
+  };
+
+  const removeImage = (id) => {
+    setImages(prev => prev.filter(img => img.id !== id));
+    if (selectedIndex >= images.length - 1) {
+      setSelectedIndex(Math.max(0, selectedIndex - 1));
+    }
   };
 
   return (
@@ -107,416 +201,411 @@ function PhotoEnhancement() {
               <Image size={24} style={{ color: 'var(--gold)' }} />
             </div>
             <div>
-              <h1 style={{ fontSize: '28px', fontWeight: '600' }}>Retouche photo IA</h1>
+              <h1 style={{ fontSize: '28px', fontWeight: '600' }}>Retouche photo</h1>
               <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>
-                Améliorez vos photos immobilières automatiquement
+                Améliorez vos photos immobilières en temps réel
               </p>
             </div>
           </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleFileSelect}
+            style={{ display: 'none' }}
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '12px 20px',
+              background: 'linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%)',
+              border: 'none',
+              borderRadius: '10px',
+              color: 'var(--bg-primary)',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: 'pointer',
+            }}
+          >
+            <Upload size={18} />
+            Importer des photos
+          </button>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: '24px' }}>
-        {/* Sidebar */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {/* Upload */}
-          <div
-            onClick={() => fileInputRef.current?.click()}
-            style={{
-              padding: '40px 20px',
-              background: 'var(--bg-card)',
-              border: '2px dashed var(--border-color)',
-              borderRadius: '16px',
-              textAlign: 'center',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-            }}
-            onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--gold)'}
-            onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-color)'}
-          >
-            <Upload size={32} style={{ color: 'var(--text-muted)', marginBottom: '12px' }} />
-            <p style={{ fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>
-              Importer des photos
-            </p>
-            <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-              Glissez ou cliquez
-            </p>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleFileSelect}
-              style={{ display: 'none' }}
-            />
-          </div>
+      {/* Info Banner */}
+      <div style={{
+        padding: '12px 16px',
+        background: 'rgba(59, 130, 246, 0.1)',
+        border: '1px solid rgba(59, 130, 246, 0.2)',
+        borderRadius: '10px',
+        marginBottom: '24px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+      }}>
+        <Info size={16} style={{ color: '#3b82f6' }} />
+        <p style={{ fontSize: '13px', color: '#3b82f6' }}>
+          Traitement 100% local dans votre navigateur. Vos photos ne sont jamais envoyées sur un serveur.
+        </p>
+      </div>
 
-          {/* Thumbnails */}
-          {images.length > 0 && (
+      {images.length === 0 ? (
+        /* Empty State */
+        <div
+          onClick={() => fileInputRef.current?.click()}
+          style={{
+            padding: '80px',
+            background: 'var(--bg-card)',
+            border: '2px dashed var(--border-color)',
+            borderRadius: '16px',
+            textAlign: 'center',
+            cursor: 'pointer',
+            transition: 'border-color 0.2s',
+          }}
+        >
+          <div style={{
+            width: '80px',
+            height: '80px',
+            background: 'rgba(212, 175, 55, 0.1)',
+            borderRadius: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 20px',
+          }}>
+            <Upload size={36} style={{ color: 'var(--gold)' }} />
+          </div>
+          <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px' }}>
+            Glissez vos photos ici
+          </h3>
+          <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>
+            ou cliquez pour sélectionner des fichiers
+          </p>
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '24px' }}>
+          {/* Main Editor */}
+          <div>
+            {/* Canvas Container */}
             <div style={{
-              padding: '16px',
+              position: 'relative',
               background: 'var(--bg-card)',
               border: '1px solid var(--border-color)',
               borderRadius: '16px',
+              overflow: 'hidden',
+              marginBottom: '16px',
             }}>
-              <h3 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '12px' }}>
-                Photos ({images.length})
-              </h3>
+              {/* Original overlay for comparison */}
+              <canvas
+                ref={originalCanvasRef}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: 'auto',
+                  opacity: showOriginal ? 1 : 0,
+                  transition: 'opacity 0.2s',
+                  pointerEvents: 'none',
+                }}
+              />
+              
+              {/* Enhanced canvas */}
+              <canvas
+                ref={canvasRef}
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  display: 'block',
+                }}
+              />
+              
+              {/* Compare button */}
+              <button
+                onMouseDown={() => setShowOriginal(true)}
+                onMouseUp={() => setShowOriginal(false)}
+                onMouseLeave={() => setShowOriginal(false)}
+                style={{
+                  position: 'absolute',
+                  bottom: '16px',
+                  left: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '8px 12px',
+                  background: 'rgba(0,0,0,0.7)',
+                  border: 'none',
+                  borderRadius: '6px',
+                  color: 'white',
+                  fontSize: '12px',
+                  cursor: 'pointer',
+                }}
+              >
+                <ZoomIn size={14} />
+                Maintenir pour voir l'original
+              </button>
+            </div>
+
+            {/* Thumbnails */}
+            {images.length > 1 && (
               <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
+                display: 'flex',
                 gap: '8px',
+                overflowX: 'auto',
+                padding: '8px 0',
               }}>
-                {images.map(img => (
+                {images.map((img, idx) => (
                   <div
                     key={img.id}
-                    onClick={() => { setSelectedImage(img); setBeforeAfter(img.enhanced); }}
+                    onClick={() => setSelectedIndex(idx)}
                     style={{
-                      aspectRatio: '1',
+                      position: 'relative',
+                      width: '80px',
+                      height: '60px',
                       borderRadius: '8px',
                       overflow: 'hidden',
+                      border: idx === selectedIndex ? '2px solid var(--gold)' : '2px solid transparent',
                       cursor: 'pointer',
-                      border: selectedImage?.id === img.id ? '2px solid var(--gold)' : '2px solid transparent',
-                      position: 'relative',
+                      flexShrink: 0,
                     }}
                   >
                     <img
-                      src={img.preview}
+                      src={img.src}
                       alt=""
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    />
-                    {img.status === 'done' && (
-                      <div style={{
-                        position: 'absolute',
-                        top: '4px',
-                        right: '4px',
-                        width: '20px',
-                        height: '20px',
-                        background: '#22c55e',
-                        borderRadius: '50%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}>
-                        <Check size={12} style={{ color: 'white' }} />
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Enhancements */}
-          <div style={{
-            padding: '16px',
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border-color)',
-            borderRadius: '16px',
-          }}>
-            <h3 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '12px' }}>
-              Améliorations
-            </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {enhancements.map(enh => (
-                <button
-                  key={enh.id}
-                  onClick={() => toggleEnhancement(enh.id)}
-                  disabled={enh.premium}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    padding: '12px',
-                    background: selectedEnhancements.includes(enh.id) 
-                      ? 'rgba(212, 175, 55, 0.1)' 
-                      : 'var(--bg-tertiary)',
-                    border: '1px solid ' + (selectedEnhancements.includes(enh.id) 
-                      ? 'rgba(212, 175, 55, 0.3)' 
-                      : 'var(--border-color)'),
-                    borderRadius: '10px',
-                    cursor: enh.premium ? 'not-allowed' : 'pointer',
-                    textAlign: 'left',
-                    opacity: enh.premium ? 0.5 : 1,
-                  }}
-                >
-                  <div style={{
-                    width: '36px',
-                    height: '36px',
-                    background: selectedEnhancements.includes(enh.id) 
-                      ? 'rgba(212, 175, 55, 0.15)' 
-                      : 'var(--bg-card)',
-                    borderRadius: '8px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}>
-                    <enh.icon size={18} style={{ 
-                      color: selectedEnhancements.includes(enh.id) ? 'var(--gold)' : 'var(--text-muted)' 
-                    }} />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <p style={{ 
-                      fontSize: '13px', 
-                      fontWeight: '500',
-                      color: selectedEnhancements.includes(enh.id) ? 'var(--gold)' : 'var(--text-primary)',
-                    }}>
-                      {enh.name}
-                      {enh.premium && (
-                        <span style={{
-                          marginLeft: '8px',
-                          padding: '2px 6px',
-                          background: 'var(--gold)',
-                          color: 'var(--bg-primary)',
-                          borderRadius: '4px',
-                          fontSize: '9px',
-                          fontWeight: '700',
-                        }}>PRO</span>
-                      )}
-                    </p>
-                    <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{enh.description}</p>
-                  </div>
-                  {selectedEnhancements.includes(enh.id) && (
-                    <Check size={16} style={{ color: 'var(--gold)' }} />
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Main Area */}
-        <div style={{
-          padding: '24px',
-          background: 'var(--bg-card)',
-          border: '1px solid var(--border-color)',
-          borderRadius: '16px',
-        }}>
-          {selectedImage ? (
-            <>
-              {/* Image Preview */}
-              <div style={{
-                position: 'relative',
-                borderRadius: '12px',
-                overflow: 'hidden',
-                marginBottom: '20px',
-                height: '500px',
-              }}>
-                {beforeAfter && selectedImage.enhanced ? (
-                  <div
-                    style={{ position: 'relative', width: '100%', height: '100%', cursor: 'ew-resize' }}
-                    onMouseMove={handleSliderMove}
-                  >
-                    {/* After (enhanced) */}
-                    <img
-                      src={selectedImage.enhanced}
-                      alt="Enhanced"
                       style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
                         width: '100%',
                         height: '100%',
                         objectFit: 'cover',
                       }}
                     />
-                    {/* Before (original) - clipped */}
-                    <div style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: `${sliderPosition}%`,
-                      height: '100%',
-                      overflow: 'hidden',
-                    }}>
-                      <img
-                        src={selectedImage.preview}
-                        alt="Original"
-                        style={{
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          width: `${100 / (sliderPosition / 100)}%`,
-                          height: '100%',
-                          objectFit: 'cover',
-                          filter: 'brightness(0.9)',
-                        }}
-                      />
-                    </div>
-                    {/* Slider */}
-                    <div style={{
-                      position: 'absolute',
-                      top: 0,
-                      bottom: 0,
-                      left: `${sliderPosition}%`,
-                      width: '4px',
-                      background: 'white',
-                      transform: 'translateX(-50%)',
-                      boxShadow: '0 0 10px rgba(0,0,0,0.5)',
-                    }}>
-                      <div style={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        width: '40px',
-                        height: '40px',
-                        background: 'white',
-                        borderRadius: '50%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
-                      }}>
-                        <div style={{ display: 'flex', gap: '2px' }}>
-                          <div style={{ width: '2px', height: '12px', background: '#333', borderRadius: '1px' }} />
-                          <div style={{ width: '2px', height: '12px', background: '#333', borderRadius: '1px' }} />
-                        </div>
-                      </div>
-                    </div>
-                    {/* Labels */}
-                    <div style={{
-                      position: 'absolute',
-                      top: '16px',
-                      left: '16px',
-                      padding: '6px 12px',
-                      background: 'rgba(0,0,0,0.7)',
-                      borderRadius: '6px',
-                      fontSize: '12px',
-                      fontWeight: '600',
-                    }}>AVANT</div>
-                    <div style={{
-                      position: 'absolute',
-                      top: '16px',
-                      right: '16px',
-                      padding: '6px 12px',
-                      background: 'var(--gold)',
-                      color: 'var(--bg-primary)',
-                      borderRadius: '6px',
-                      fontSize: '12px',
-                      fontWeight: '600',
-                    }}>APRÈS</div>
-                  </div>
-                ) : (
-                  <img
-                    src={selectedImage.preview}
-                    alt="Selected"
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                    }}
-                  />
-                )}
-                
-                {processing && (
-                  <div style={{
-                    position: 'absolute',
-                    inset: 0,
-                    background: 'rgba(0,0,0,0.7)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}>
-                    <Loader2 size={48} style={{ color: 'var(--gold)', animation: 'spin 1s linear infinite' }} />
-                    <p style={{ marginTop: '16px', fontSize: '16px', fontWeight: '500' }}>
-                      Amélioration en cours...
-                    </p>
-                    <p style={{ marginTop: '8px', fontSize: '13px', color: 'var(--text-muted)' }}>
-                      L'IA analyse et optimise votre photo
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Actions */}
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', gap: '12px' }}>
-                  {selectedImage.enhanced && (
                     <button
-                      onClick={() => setBeforeAfter(!beforeAfter)}
+                      onClick={(e) => { e.stopPropagation(); removeImage(img.id); }}
                       style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        padding: '12px 20px',
-                        background: 'var(--bg-tertiary)',
-                        border: '1px solid var(--border-color)',
-                        borderRadius: '10px',
-                        color: 'var(--text-primary)',
-                        fontSize: '14px',
+                        position: 'absolute',
+                        top: '2px',
+                        right: '2px',
+                        padding: '2px',
+                        background: 'rgba(239, 68, 68, 0.9)',
+                        border: 'none',
+                        borderRadius: '4px',
+                        color: 'white',
                         cursor: 'pointer',
                       }}
                     >
-                      <ZoomIn size={18} />
-                      {beforeAfter ? 'Masquer comparaison' : 'Voir avant/après'}
+                      <Trash2 size={10} />
                     </button>
-                  )}
-                </div>
-                <div style={{ display: 'flex', gap: '12px' }}>
-                  {selectedImage.enhanced && (
-                    <button style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      padding: '12px 20px',
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Presets */}
+            <div style={{
+              padding: '16px',
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-color)',
+              borderRadius: '12px',
+            }}>
+              <p style={{ fontSize: '13px', fontWeight: '500', marginBottom: '12px' }}>Préréglages</p>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                {presets.map((preset) => (
+                  <button
+                    key={preset.name}
+                    onClick={() => applyPreset(preset)}
+                    style={{
+                      padding: '8px 14px',
                       background: 'var(--bg-tertiary)',
                       border: '1px solid var(--border-color)',
-                      borderRadius: '10px',
-                      color: 'var(--text-primary)',
-                      fontSize: '14px',
+                      borderRadius: '6px',
+                      color: 'var(--text-secondary)',
+                      fontSize: '12px',
                       cursor: 'pointer',
-                    }}>
-                      <Download size={18} />
-                      Télécharger
-                    </button>
-                  )}
-                  <button
-                    onClick={processImage}
-                    disabled={processing}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      padding: '12px 24px',
-                      background: 'var(--gold)',
-                      border: 'none',
-                      borderRadius: '10px',
-                      color: 'var(--bg-primary)',
-                      fontWeight: '600',
-                      fontSize: '14px',
-                      cursor: processing ? 'wait' : 'pointer',
                     }}
                   >
-                    <Wand2 size={18} />
-                    {selectedImage.enhanced ? 'Ré-améliorer' : 'Améliorer'}
+                    {preset.name}
                   </button>
-                </div>
+                ))}
               </div>
-            </>
-          ) : (
-            <div style={{
-              height: '500px',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--text-muted)',
-            }}>
-              <Image size={64} style={{ opacity: 0.3, marginBottom: '16px' }} />
-              <p style={{ fontSize: '16px', fontWeight: '500' }}>Aucune photo sélectionnée</p>
-              <p style={{ fontSize: '14px', marginTop: '8px' }}>
-                Importez des photos pour commencer
-              </p>
             </div>
-          )}
-        </div>
-      </div>
+          </div>
 
-      <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-      `}</style>
+          {/* Controls Panel */}
+          <div style={{
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-color)',
+            borderRadius: '16px',
+            padding: '20px',
+            height: 'fit-content',
+          }}>
+            <h3 style={{ fontSize: '15px', fontWeight: '600', marginBottom: '20px' }}>Ajustements</h3>
+
+            {/* Sliders */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <SliderControl
+                icon={<Sun size={16} />}
+                label="Luminosité"
+                value={filters.brightness}
+                min={50}
+                max={150}
+                onChange={(v) => updateFilter('brightness', v)}
+              />
+              <SliderControl
+                icon={<Contrast size={16} />}
+                label="Contraste"
+                value={filters.contrast}
+                min={50}
+                max={150}
+                onChange={(v) => updateFilter('contrast', v)}
+              />
+              <SliderControl
+                icon={<Palette size={16} />}
+                label="Saturation"
+                value={filters.saturation}
+                min={0}
+                max={200}
+                onChange={(v) => updateFilter('saturation', v)}
+              />
+              <SliderControl
+                icon={<Sparkles size={16} />}
+                label="Chaleur"
+                value={filters.warmth}
+                min={0}
+                max={50}
+                onChange={(v) => updateFilter('warmth', v)}
+              />
+            </div>
+
+            {/* Transform buttons */}
+            <div style={{
+              display: 'flex',
+              gap: '8px',
+              marginTop: '24px',
+              paddingTop: '20px',
+              borderTop: '1px solid var(--border-color)',
+            }}>
+              <button
+                onClick={rotateImage}
+                style={{
+                  flex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  padding: '10px',
+                  background: 'var(--bg-tertiary)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '8px',
+                  color: 'var(--text-secondary)',
+                  fontSize: '12px',
+                  cursor: 'pointer',
+                }}
+              >
+                <RotateCw size={14} />
+                Rotation
+              </button>
+              <button
+                onClick={flipImage}
+                style={{
+                  flex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  padding: '10px',
+                  background: filters.flipH ? 'rgba(212, 175, 55, 0.15)' : 'var(--bg-tertiary)',
+                  border: `1px solid ${filters.flipH ? 'var(--gold)' : 'var(--border-color)'}`,
+                  borderRadius: '8px',
+                  color: filters.flipH ? 'var(--gold)' : 'var(--text-secondary)',
+                  fontSize: '12px',
+                  cursor: 'pointer',
+                }}
+              >
+                <FlipHorizontal size={14} />
+                Miroir
+              </button>
+            </div>
+
+            {/* Action buttons */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '20px' }}>
+              <button
+                onClick={resetFilters}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  padding: '12px',
+                  background: 'var(--bg-tertiary)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '8px',
+                  color: 'var(--text-secondary)',
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                }}
+              >
+                <RefreshCw size={16} />
+                Réinitialiser
+              </button>
+              <button
+                onClick={downloadImage}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  padding: '12px',
+                  background: 'linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%)',
+                  border: 'none',
+                  borderRadius: '8px',
+                  color: 'var(--bg-primary)',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                }}
+              >
+                <Download size={16} />
+                Télécharger
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Slider Component
+function SliderControl({ icon, label, value, min, max, onChange }) {
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ color: 'var(--text-muted)' }}>{icon}</span>
+          <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{label}</span>
+        </div>
+        <span style={{ fontSize: '12px', color: 'var(--gold)', fontWeight: '500' }}>{value}%</span>
+      </div>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        value={value}
+        onChange={(e) => onChange(parseInt(e.target.value))}
+        style={{
+          width: '100%',
+          height: '4px',
+          background: `linear-gradient(to right, var(--gold) ${((value - min) / (max - min)) * 100}%, var(--border-color) ${((value - min) / (max - min)) * 100}%)`,
+          borderRadius: '4px',
+          outline: 'none',
+          cursor: 'pointer',
+          WebkitAppearance: 'none',
+        }}
+      />
     </div>
   );
 }

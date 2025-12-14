@@ -1,363 +1,185 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../../lib/supabase';
 import { 
-  ArrowLeft, 
   MessageCircle,
   Send,
   Phone,
-  Video,
-  MoreVertical,
   Search,
-  Paperclip,
-  Smile,
-  Mic,
-  Check,
-  CheckCheck,
-  Clock,
-  Image,
-  Home,
   User,
-  Star,
-  Filter,
-  Plus,
-  Settings,
-  Bell,
-  BellOff,
-  Archive,
-  Trash2,
   ExternalLink,
-  QrCode,
-  Smartphone,
-  RefreshCw,
+  Copy,
+  Check,
+  Loader2,
+  AlertCircle,
+  Settings,
   Zap,
-  Bot
+  RefreshCw,
+  Clock,
+  Building2,
+  Info
 } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
 
-// Mock conversations data
-const mockConversations = [
+// Pre-defined message templates
+const messageTemplates = [
   {
-    id: 1,
-    name: 'Marie Dupont',
-    phone: '+33 6 12 34 56 78',
-    avatar: null,
-    lastMessage: 'Bonjour, je suis intéressée par l\'appartement rue de Rivoli',
-    timestamp: new Date(Date.now() - 1000 * 60 * 5),
-    unread: 2,
-    status: 'online',
-    leadId: 'lead_1',
-    property: 'Appartement 3P - Rivoli',
+    id: 'greeting',
+    name: 'Salutation',
+    message: 'Bonjour {name}, je suis {agent} de CSX Immobilier. Suite à votre intérêt pour nos biens, je me permets de vous contacter. Êtes-vous disponible pour en discuter ?'
   },
   {
-    id: 2,
-    name: 'Jean Martin',
-    phone: '+33 6 98 76 54 32',
-    avatar: null,
-    lastMessage: 'Merci pour les informations, je réfléchis',
-    timestamp: new Date(Date.now() - 1000 * 60 * 30),
-    unread: 0,
-    status: 'offline',
-    leadId: 'lead_2',
-    property: 'Villa avec piscine - Nice',
+    id: 'property',
+    name: 'Présentation bien',
+    message: 'Bonjour {name}, j\'ai un bien qui pourrait vous intéresser : {property}. Souhaitez-vous plus d\'informations ou organiser une visite ?'
   },
   {
-    id: 3,
-    name: 'Sophie Bernard',
-    phone: '+33 6 55 44 33 22',
-    avatar: null,
-    lastMessage: 'Est-ce que la visite de samedi tient toujours ?',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2),
-    unread: 1,
-    status: 'typing',
-    leadId: 'lead_3',
-    property: 'Maison 5P - Bordeaux',
+    id: 'visit_confirm',
+    name: 'Confirmation visite',
+    message: 'Bonjour {name}, je vous confirme notre rendez-vous pour la visite du {date} à {time}. À bientôt !'
   },
   {
-    id: 4,
-    name: 'Pierre Durand',
-    phone: '+33 6 11 22 33 44',
-    avatar: null,
-    lastMessage: 'Photos reçues, merci !',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24),
-    unread: 0,
-    status: 'offline',
-    leadId: 'lead_4',
-    property: 'Studio - Paris 11e',
+    id: 'followup',
+    name: 'Relance',
+    message: 'Bonjour {name}, je reviens vers vous concernant votre recherche immobilière. Avez-vous eu le temps de réfléchir ? Je reste à votre disposition.'
   },
-];
-
-const mockMessages = [
-  { id: 1, text: 'Bonjour, je vous contacte suite à votre annonce pour l\'appartement rue de Rivoli', sender: 'them', timestamp: new Date(Date.now() - 1000 * 60 * 60) },
-  { id: 2, text: 'Bonjour Marie ! Oui bien sûr, c\'est un magnifique 3 pièces de 75m²', sender: 'me', timestamp: new Date(Date.now() - 1000 * 60 * 55), status: 'read' },
-  { id: 3, text: 'Il est disponible immédiatement et proche du métro', sender: 'me', timestamp: new Date(Date.now() - 1000 * 60 * 54), status: 'read' },
-  { id: 4, text: 'Super ! Quels sont les horaires de visite possibles ?', sender: 'them', timestamp: new Date(Date.now() - 1000 * 60 * 30) },
-  { id: 5, text: 'Je suis disponible cette semaine : mardi 14h-18h ou jeudi toute la journée', sender: 'me', timestamp: new Date(Date.now() - 1000 * 60 * 25), status: 'read' },
-  { id: 6, text: 'Bonjour, je suis intéressée par l\'appartement rue de Rivoli', sender: 'them', timestamp: new Date(Date.now() - 1000 * 60 * 5) },
-];
-
-const quickReplies = [
-  'Bonjour ! Comment puis-je vous aider ?',
-  'Le bien est toujours disponible',
-  'Je vous envoie les photos',
-  'Quand êtes-vous disponible pour une visite ?',
-  'Je vous recontacte rapidement',
+  {
+    id: 'documents',
+    name: 'Demande documents',
+    message: 'Bonjour {name}, pour avancer dans votre dossier, pourriez-vous me transmettre les documents suivants : pièce d\'identité, 3 derniers bulletins de salaire, dernier avis d\'imposition. Merci !'
+  },
 ];
 
 function WhatsAppIntegration() {
-  const [isConnected, setIsConnected] = useState(false);
-  const [conversations, setConversations] = useState(mockConversations);
-  const [selectedConversation, setSelectedConversation] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const [newMessage, setNewMessage] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showQuickReplies, setShowQuickReplies] = useState(false);
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  const [autoReply, setAutoReply] = useState(true);
-  const [notifications, setNotifications] = useState(true);
-  
-  const messagesEndRef = useRef(null);
+  const [leads, setLeads] = useState([]);
+  const [listings, setListings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedLead, setSelectedLead] = useState(null);
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [customMessage, setCustomMessage] = useState('');
+  const [agentName, setAgentName] = useState('');
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (selectedConversation) {
-      setMessages(mockMessages);
-      scrollToBottom();
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      // Load agent profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name, company_name')
+        .eq('id', user.id)
+        .single();
+      
+      if (profile) {
+        setAgentName(profile.full_name || profile.company_name || 'Votre agent');
+      }
+
+      // Load leads with phone numbers
+      const { data: leadsData } = await supabase
+        .from('leads')
+        .select('*')
+        .eq('user_id', user.id)
+        .not('phone', 'is', null)
+        .order('created_at', { ascending: false });
+      
+      setLeads(leadsData || []);
+
+      // Load listings
+      const { data: listingsData } = await supabase
+        .from('listings')
+        .select('id, title, location, price')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+      
+      setListings(listingsData || []);
+
+    } catch (err) {
+      console.error('Error loading data:', err);
+    } finally {
+      setLoading(false);
     }
-  }, [selectedConversation]);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const formatTime = (date) => {
-    return new Date(date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-  };
-
-  const formatDate = (date) => {
-    const today = new Date();
-    const msgDate = new Date(date);
-    
-    if (msgDate.toDateString() === today.toDateString()) {
-      return formatTime(date);
+  const formatPhone = (phone) => {
+    if (!phone) return '';
+    // Remove all non-digit characters
+    let cleaned = phone.replace(/\D/g, '');
+    // Add country code if missing
+    if (cleaned.startsWith('0')) {
+      cleaned = '33' + cleaned.slice(1);
+    } else if (!cleaned.startsWith('33') && !cleaned.startsWith('+')) {
+      cleaned = '33' + cleaned;
     }
-    if (msgDate.toDateString() === new Date(today - 86400000).toDateString()) {
-      return 'Hier';
+    return cleaned;
+  };
+
+  const generateMessage = (template, lead) => {
+    let msg = template.message;
+    msg = msg.replace('{name}', lead?.name || 'Madame, Monsieur');
+    msg = msg.replace('{agent}', agentName);
+    msg = msg.replace('{property}', lead?.property_interest || 'notre bien');
+    msg = msg.replace('{date}', '[DATE]');
+    msg = msg.replace('{time}', '[HEURE]');
+    return msg;
+  };
+
+  const openWhatsApp = (lead, message) => {
+    const phone = formatPhone(lead.phone);
+    const encodedMessage = encodeURIComponent(message || customMessage);
+    window.open(`https://wa.me/${phone}?text=${encodedMessage}`, '_blank');
+  };
+
+  const copyMessage = async (message) => {
+    try {
+      await navigator.clipboard.writeText(message);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Copy failed:', err);
     }
-    return msgDate.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
   };
 
-  const connectWhatsApp = async () => {
-    setIsConnecting(true);
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    setIsConnected(true);
-    setIsConnecting(false);
-  };
-
-  const sendMessage = () => {
-    if (!newMessage.trim()) return;
-    
-    const msg = {
-      id: messages.length + 1,
-      text: newMessage,
-      sender: 'me',
-      timestamp: new Date(),
-      status: 'sent',
-    };
-    
-    setMessages([...messages, msg]);
-    setNewMessage('');
-    
-    // Update conversation last message
-    setConversations(convs => convs.map(c => 
-      c.id === selectedConversation.id 
-        ? { ...c, lastMessage: newMessage, timestamp: new Date() }
-        : c
-    ));
-  };
-
-  const filteredConversations = conversations.filter(c => 
-    c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    c.phone.includes(searchQuery)
-  );
-
-  if (!isConnected) {
+  const filteredLeads = leads.filter(lead => {
+    if (!searchTerm) return true;
+    const term = searchTerm.toLowerCase();
     return (
-      <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-        {/* Header */}
-        <div style={{ marginBottom: '32px' }}>
-          <Link 
-            to="/tools" 
-            style={{ 
-              display: 'inline-flex', 
-              alignItems: 'center', 
-              gap: '8px', 
-              color: 'var(--text-muted)', 
-              textDecoration: 'none',
-              marginBottom: '16px',
-              fontSize: '14px',
-            }}
-          >
-            <ArrowLeft size={16} />
-            Retour aux outils
-          </Link>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{
-              width: '48px',
-              height: '48px',
-              background: 'linear-gradient(135deg, rgba(37, 211, 102, 0.2) 0%, rgba(37, 211, 102, 0.05) 100%)',
-              borderRadius: '12px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-              <MessageCircle size={24} style={{ color: '#25D366' }} />
-            </div>
-            <div>
-              <h1 style={{ fontSize: '28px', fontWeight: '600' }}>WhatsApp Business</h1>
-              <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>
-                Gérez vos conversations WhatsApp directement depuis l'application
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Connection Card */}
-        <div style={{
-          padding: '60px 40px',
-          background: 'var(--bg-card)',
-          border: '1px solid var(--border-color)',
-          borderRadius: '24px',
-          textAlign: 'center',
-        }}>
-          <div style={{
-            width: '120px',
-            height: '120px',
-            margin: '0 auto 32px',
-            background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
-            borderRadius: '30px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-            <MessageCircle size={60} style={{ color: 'white' }} />
-          </div>
-
-          <h2 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '12px' }}>
-            Connectez WhatsApp Business
-          </h2>
-          <p style={{ 
-            fontSize: '15px', 
-            color: 'var(--text-muted)', 
-            maxWidth: '400px', 
-            margin: '0 auto 32px',
-            lineHeight: '1.6',
-          }}>
-            Synchronisez vos conversations WhatsApp pour répondre à vos leads directement depuis CSX Immobilier
-          </p>
-
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '16px',
-            maxWidth: '350px',
-            margin: '0 auto 32px',
-            textAlign: 'left',
-          }}>
-            {[
-              { icon: MessageCircle, text: 'Toutes vos conversations au même endroit' },
-              { icon: Zap, text: 'Réponses rapides personnalisables' },
-              { icon: Bot, text: 'Réponses automatiques intelligentes' },
-              { icon: User, text: 'Synchronisation avec vos leads' },
-            ].map((item, idx) => (
-              <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{
-                  width: '36px',
-                  height: '36px',
-                  background: 'rgba(37, 211, 102, 0.1)',
-                  borderRadius: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
-                  <item.icon size={18} style={{ color: '#25D366' }} />
-                </div>
-                <span style={{ fontSize: '14px' }}>{item.text}</span>
-              </div>
-            ))}
-          </div>
-
-          <button
-            onClick={connectWhatsApp}
-            disabled={isConnecting}
-            style={{
-              padding: '16px 48px',
-              background: isConnecting ? 'var(--bg-secondary)' : 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
-              border: 'none',
-              borderRadius: '12px',
-              color: 'white',
-              fontSize: '16px',
-              fontWeight: '600',
-              cursor: isConnecting ? 'not-allowed' : 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-            }}
-          >
-            {isConnecting ? (
-              <>
-                <RefreshCw size={20} style={{ animation: 'spin 1s linear infinite' }} />
-                Connexion en cours...
-              </>
-            ) : (
-              <>
-                <QrCode size={20} />
-                Scanner le QR Code
-              </>
-            )}
-          </button>
-
-          <p style={{ 
-            fontSize: '12px', 
-            color: 'var(--text-muted)', 
-            marginTop: '16px' 
-          }}>
-            Nécessite WhatsApp Business sur votre téléphone
-          </p>
-        </div>
-
-        <style>{`
-          @keyframes spin {
-            to { transform: rotate(360deg); }
-          }
-        `}</style>
-      </div>
+      lead.name?.toLowerCase().includes(term) ||
+      lead.phone?.includes(term) ||
+      lead.email?.toLowerCase().includes(term)
     );
-  }
+  });
+
+  const formatDate = (dateStr) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return 'Aujourd\'hui';
+    if (diffDays === 1) return 'Hier';
+    if (diffDays < 7) return `Il y a ${diffDays} jours`;
+    return date.toLocaleDateString('fr-FR');
+  };
 
   return (
-    <div style={{ maxWidth: '1400px' }}>
+    <div style={{ maxWidth: '1200px' }}>
       {/* Header */}
-      <div style={{ marginBottom: '24px' }}>
-        <Link 
-          to="/tools" 
-          style={{ 
-            display: 'inline-flex', 
-            alignItems: 'center', 
-            gap: '8px', 
-            color: 'var(--text-muted)', 
-            textDecoration: 'none',
-            marginBottom: '16px',
-            fontSize: '14px',
-          }}
-        >
-          <ArrowLeft size={16} />
-          Retour aux outils
-        </Link>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ marginBottom: '32px' }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{
               width: '48px',
@@ -368,488 +190,363 @@ function WhatsAppIntegration() {
               alignItems: 'center',
               justifyContent: 'center',
             }}>
-              <MessageCircle size={24} style={{ color: '#25D366' }} />
+              <MessageCircle size={24} style={{ color: '#25d366' }} />
             </div>
             <div>
-              <h1 style={{ fontSize: '28px', fontWeight: '600' }}>WhatsApp Business</h1>
+              <h1 style={{ fontSize: '28px', fontWeight: '600' }}>WhatsApp</h1>
               <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>
-                <span style={{ 
-                  display: 'inline-flex', 
-                  alignItems: 'center', 
-                  gap: '6px',
-                  color: '#25D366',
-                }}>
-                  <span style={{
-                    width: '8px',
-                    height: '8px',
-                    background: '#25D366',
-                    borderRadius: '50%',
-                  }} />
-                  Connecté
-                </span>
-                {' · '}{conversations.filter(c => c.unread > 0).length} non lus
+                Contactez vos leads directement sur WhatsApp
               </p>
             </div>
           </div>
           <button
-            onClick={() => setShowSettings(!showSettings)}
+            onClick={loadData}
+            disabled={loading}
             style={{
-              padding: '10px',
-              background: 'var(--bg-card)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '10px 16px',
+              background: 'var(--bg-tertiary)',
               border: '1px solid var(--border-color)',
-              borderRadius: '10px',
-              color: 'var(--text-primary)',
+              borderRadius: '8px',
+              color: 'var(--text-secondary)',
+              fontSize: '14px',
               cursor: 'pointer',
             }}
           >
-            <Settings size={20} />
+            <RefreshCw size={16} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
+            Actualiser
           </button>
         </div>
       </div>
 
-      {/* Main Chat Interface */}
+      {/* Info Banner */}
       <div style={{
-        display: 'grid',
-        gridTemplateColumns: '350px 1fr',
-        height: 'calc(100vh - 200px)',
-        background: 'var(--bg-card)',
-        border: '1px solid var(--border-color)',
-        borderRadius: '16px',
-        overflow: 'hidden',
+        padding: '16px 20px',
+        background: 'rgba(37, 211, 102, 0.1)',
+        border: '1px solid rgba(37, 211, 102, 0.2)',
+        borderRadius: '12px',
+        marginBottom: '24px',
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: '12px',
       }}>
-        {/* Conversations List */}
-        <div style={{
-          borderRight: '1px solid var(--border-color)',
-          display: 'flex',
-          flexDirection: 'column',
-        }}>
-          {/* Search */}
-          <div style={{ padding: '16px', borderBottom: '1px solid var(--border-color)' }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              padding: '10px 16px',
-              background: 'var(--bg-primary)',
-              borderRadius: '10px',
-            }}>
-              <Search size={18} style={{ color: 'var(--text-muted)' }} />
-              <input
-                type="text"
-                placeholder="Rechercher..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                style={{
-                  flex: 1,
-                  background: 'none',
-                  border: 'none',
-                  color: 'var(--text-primary)',
-                  fontSize: '14px',
-                  outline: 'none',
-                }}
-              />
-            </div>
-          </div>
-
-          {/* Conversation List */}
-          <div style={{ flex: 1, overflowY: 'auto' }}>
-            {filteredConversations.map(conv => (
-              <div
-                key={conv.id}
-                onClick={() => setSelectedConversation(conv)}
-                style={{
-                  padding: '16px',
-                  borderBottom: '1px solid var(--border-color)',
-                  cursor: 'pointer',
-                  background: selectedConversation?.id === conv.id 
-                    ? 'rgba(37, 211, 102, 0.1)' 
-                    : 'transparent',
-                  transition: 'background 0.2s',
-                }}
-                onMouseEnter={e => {
-                  if (selectedConversation?.id !== conv.id) {
-                    e.currentTarget.style.background = 'var(--bg-primary)';
-                  }
-                }}
-                onMouseLeave={e => {
-                  if (selectedConversation?.id !== conv.id) {
-                    e.currentTarget.style.background = 'transparent';
-                  }
-                }}
-              >
-                <div style={{ display: 'flex', gap: '12px' }}>
-                  {/* Avatar */}
-                  <div style={{
-                    width: '50px',
-                    height: '50px',
-                    borderRadius: '50%',
-                    background: 'var(--bg-secondary)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    position: 'relative',
-                  }}>
-                    <User size={24} style={{ color: 'var(--text-muted)' }} />
-                    {conv.status === 'online' && (
-                      <span style={{
-                        position: 'absolute',
-                        bottom: '2px',
-                        right: '2px',
-                        width: '12px',
-                        height: '12px',
-                        background: '#25D366',
-                        borderRadius: '50%',
-                        border: '2px solid var(--bg-card)',
-                      }} />
-                    )}
-                  </div>
-
-                  {/* Content */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ 
-                      display: 'flex', 
-                      justifyContent: 'space-between',
-                      marginBottom: '4px',
-                    }}>
-                      <span style={{ fontWeight: '600', fontSize: '14px' }}>
-                        {conv.name}
-                      </span>
-                      <span style={{ 
-                        fontSize: '11px', 
-                        color: conv.unread > 0 ? '#25D366' : 'var(--text-muted)' 
-                      }}>
-                        {formatDate(conv.timestamp)}
-                      </span>
-                    </div>
-                    <div style={{ 
-                      display: 'flex', 
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                    }}>
-                      <p style={{
-                        fontSize: '13px',
-                        color: 'var(--text-muted)',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        maxWidth: '200px',
-                      }}>
-                        {conv.status === 'typing' ? (
-                          <span style={{ color: '#25D366', fontStyle: 'italic' }}>
-                            En train d'écrire...
-                          </span>
-                        ) : conv.lastMessage}
-                      </p>
-                      {conv.unread > 0 && (
-                        <span style={{
-                          minWidth: '20px',
-                          height: '20px',
-                          background: '#25D366',
-                          color: 'white',
-                          borderRadius: '10px',
-                          fontSize: '11px',
-                          fontWeight: '600',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          padding: '0 6px',
-                        }}>
-                          {conv.unread}
-                        </span>
-                      )}
-                    </div>
-                    <p style={{ 
-                      fontSize: '11px', 
-                      color: 'var(--gold)',
-                      marginTop: '4px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                    }}>
-                      <Home size={10} />
-                      {conv.property}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+        <Info size={20} style={{ color: '#25d366', flexShrink: 0, marginTop: '2px' }} />
+        <div>
+          <p style={{ fontSize: '14px', fontWeight: '500', color: '#25d366', marginBottom: '4px' }}>
+            Comment ça fonctionne
+          </p>
+          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+            Sélectionnez un contact, choisissez un modèle de message ou rédigez le vôtre, puis cliquez pour ouvrir WhatsApp avec le message pré-rempli. Vos leads avec numéro de téléphone s'affichent automatiquement.
+          </p>
         </div>
+      </div>
 
-        {/* Chat Area */}
-        {selectedConversation ? (
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            {/* Chat Header */}
-            <div style={{
-              padding: '16px 20px',
-              borderBottom: '1px solid var(--border-color)',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: '50%',
-                  background: 'var(--bg-secondary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
-                  <User size={20} style={{ color: 'var(--text-muted)' }} />
-                </div>
-                <div>
-                  <h3 style={{ fontSize: '15px', fontWeight: '600' }}>
-                    {selectedConversation.name}
-                  </h3>
-                  <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                    {selectedConversation.status === 'online' ? 'En ligne' : 
-                     selectedConversation.status === 'typing' ? 'En train d\'écrire...' :
-                     selectedConversation.phone}
-                  </p>
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button style={{
-                  padding: '8px',
-                  background: 'var(--bg-primary)',
-                  border: '1px solid var(--border-color)',
-                  borderRadius: '8px',
-                  color: 'var(--text-primary)',
-                  cursor: 'pointer',
-                }}>
-                  <Phone size={18} />
-                </button>
-                <button style={{
-                  padding: '8px',
-                  background: 'var(--bg-primary)',
-                  border: '1px solid var(--border-color)',
-                  borderRadius: '8px',
-                  color: 'var(--text-primary)',
-                  cursor: 'pointer',
-                }}>
-                  <Video size={18} />
-                </button>
-                <Link 
-                  to="/leads"
+      {loading ? (
+        <div style={{ padding: '60px', textAlign: 'center' }}>
+          <Loader2 size={32} style={{ color: '#25d366', animation: 'spin 1s linear infinite', margin: '0 auto 16px' }} />
+          <p style={{ color: 'var(--text-muted)' }}>Chargement des contacts...</p>
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: '350px 1fr', gap: '24px' }}>
+          {/* Contacts List */}
+          <div style={{
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-color)',
+            borderRadius: '16px',
+            overflow: 'hidden',
+          }}>
+            {/* Search */}
+            <div style={{ padding: '16px', borderBottom: '1px solid var(--border-color)' }}>
+              <div style={{ position: 'relative' }}>
+                <Search size={16} style={{
+                  position: 'absolute',
+                  left: '12px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: 'var(--text-muted)',
+                }} />
+                <input
+                  type="text"
+                  placeholder="Rechercher un contact..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                   style={{
-                    padding: '8px 12px',
-                    background: 'var(--bg-primary)',
+                    width: '100%',
+                    padding: '10px 10px 10px 38px',
+                    background: 'var(--bg-tertiary)',
                     border: '1px solid var(--border-color)',
                     borderRadius: '8px',
                     color: 'var(--text-primary)',
-                    textDecoration: 'none',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
                     fontSize: '13px',
                   }}
-                >
-                  <ExternalLink size={14} />
-                  Voir lead
-                </Link>
+                />
               </div>
             </div>
 
-            {/* Messages */}
-            <div style={{
-              flex: 1,
-              overflowY: 'auto',
-              padding: '20px',
-              background: 'var(--bg-primary)',
-            }}>
-              {messages.map(msg => (
-                <div
-                  key={msg.id}
-                  style={{
-                    display: 'flex',
-                    justifyContent: msg.sender === 'me' ? 'flex-end' : 'flex-start',
-                    marginBottom: '12px',
-                  }}
-                >
-                  <div style={{
-                    maxWidth: '70%',
-                    padding: '10px 14px',
-                    background: msg.sender === 'me' ? '#DCF8C6' : 'var(--bg-card)',
-                    color: msg.sender === 'me' ? '#000' : 'var(--text-primary)',
-                    borderRadius: msg.sender === 'me' 
-                      ? '12px 12px 0 12px' 
-                      : '12px 12px 12px 0',
-                    boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
-                  }}>
-                    <p style={{ fontSize: '14px', lineHeight: '1.4' }}>{msg.text}</p>
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'flex-end',
-                      alignItems: 'center',
-                      gap: '4px',
-                      marginTop: '4px',
-                    }}>
-                      <span style={{ 
-                        fontSize: '11px', 
-                        color: msg.sender === 'me' ? 'rgba(0,0,0,0.5)' : 'var(--text-muted)' 
-                      }}>
-                        {formatTime(msg.timestamp)}
-                      </span>
-                      {msg.sender === 'me' && (
-                        msg.status === 'read' ? (
-                          <CheckCheck size={14} style={{ color: '#34B7F1' }} />
-                        ) : msg.status === 'delivered' ? (
-                          <CheckCheck size={14} style={{ color: 'rgba(0,0,0,0.3)' }} />
-                        ) : (
-                          <Check size={14} style={{ color: 'rgba(0,0,0,0.3)' }} />
-                        )
-                      )}
-                    </div>
-                  </div>
+            {/* Contacts */}
+            <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
+              {filteredLeads.length === 0 ? (
+                <div style={{ padding: '40px 20px', textAlign: 'center' }}>
+                  <User size={32} style={{ color: 'var(--text-muted)', marginBottom: '12px', opacity: 0.5 }} />
+                  <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
+                    {leads.length === 0 
+                      ? 'Aucun lead avec numéro de téléphone'
+                      : 'Aucun résultat'}
+                  </p>
                 </div>
-              ))}
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* Quick Replies */}
-            {showQuickReplies && (
-              <div style={{
-                padding: '12px 20px',
-                borderTop: '1px solid var(--border-color)',
-                display: 'flex',
-                gap: '8px',
-                flexWrap: 'wrap',
-              }}>
-                {quickReplies.map((reply, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => {
-                      setNewMessage(reply);
-                      setShowQuickReplies(false);
-                    }}
+              ) : (
+                filteredLeads.map(lead => (
+                  <div
+                    key={lead.id}
+                    onClick={() => setSelectedLead(lead)}
                     style={{
-                      padding: '8px 12px',
-                      background: 'var(--bg-primary)',
-                      border: '1px solid var(--border-color)',
-                      borderRadius: '16px',
-                      color: 'var(--text-primary)',
-                      fontSize: '13px',
+                      padding: '14px 16px',
+                      borderBottom: '1px solid var(--border-color)',
                       cursor: 'pointer',
+                      background: selectedLead?.id === lead.id ? 'rgba(37, 211, 102, 0.1)' : 'transparent',
+                      transition: 'background 0.2s',
                     }}
                   >
-                    {reply}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Input Area */}
-            <div style={{
-              padding: '16px 20px',
-              borderTop: '1px solid var(--border-color)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-            }}>
-              <button
-                onClick={() => setShowQuickReplies(!showQuickReplies)}
-                style={{
-                  padding: '10px',
-                  background: showQuickReplies ? 'rgba(37, 211, 102, 0.1)' : 'transparent',
-                  border: 'none',
-                  borderRadius: '8px',
-                  color: showQuickReplies ? '#25D366' : 'var(--text-muted)',
-                  cursor: 'pointer',
-                }}
-                title="Réponses rapides"
-              >
-                <Zap size={20} />
-              </button>
-              <button style={{
-                padding: '10px',
-                background: 'transparent',
-                border: 'none',
-                color: 'var(--text-muted)',
-                cursor: 'pointer',
-              }}>
-                <Paperclip size={20} />
-              </button>
-              <div style={{
-                flex: 1,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                padding: '10px 16px',
-                background: 'var(--bg-primary)',
-                borderRadius: '24px',
-              }}>
-                <input
-                  type="text"
-                  placeholder="Écrivez un message..."
-                  value={newMessage}
-                  onChange={e => setNewMessage(e.target.value)}
-                  onKeyPress={e => e.key === 'Enter' && sendMessage()}
-                  style={{
-                    flex: 1,
-                    background: 'none',
-                    border: 'none',
-                    color: 'var(--text-primary)',
-                    fontSize: '14px',
-                    outline: 'none',
-                  }}
-                />
-                <button style={{
-                  background: 'none',
-                  border: 'none',
-                  color: 'var(--text-muted)',
-                  cursor: 'pointer',
-                }}>
-                  <Smile size={20} />
-                </button>
-              </div>
-              {newMessage ? (
-                <button
-                  onClick={sendMessage}
-                  style={{
-                    padding: '12px',
-                    background: '#25D366',
-                    border: 'none',
-                    borderRadius: '50%',
-                    color: 'white',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <Send size={20} />
-                </button>
-              ) : (
-                <button style={{
-                  padding: '12px',
-                  background: 'var(--bg-primary)',
-                  border: 'none',
-                  borderRadius: '50%',
-                  color: 'var(--text-muted)',
-                  cursor: 'pointer',
-                }}>
-                  <Mic size={20} />
-                </button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{
+                        width: '42px',
+                        height: '42px',
+                        borderRadius: '50%',
+                        background: 'var(--bg-tertiary)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                      }}>
+                        <User size={20} style={{ color: 'var(--text-muted)' }} />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontSize: '14px', fontWeight: '500', marginBottom: '2px' }}>
+                          {lead.name || 'Sans nom'}
+                        </p>
+                        <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                          {lead.phone}
+                        </p>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                          {formatDate(lead.created_at)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))
               )}
             </div>
           </div>
-        ) : (
+
+          {/* Message Composer */}
           <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'var(--text-muted)',
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-color)',
+            borderRadius: '16px',
+            padding: '24px',
           }}>
-            <MessageCircle size={64} style={{ marginBottom: '16px', opacity: 0.3 }} />
-            <p style={{ fontSize: '16px' }}>Sélectionnez une conversation</p>
+            {selectedLead ? (
+              <>
+                {/* Selected Contact Header */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  paddingBottom: '20px',
+                  borderBottom: '1px solid var(--border-color)',
+                  marginBottom: '20px',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{
+                      width: '48px',
+                      height: '48px',
+                      borderRadius: '50%',
+                      background: 'rgba(37, 211, 102, 0.1)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}>
+                      <User size={24} style={{ color: '#25d366' }} />
+                    </div>
+                    <div>
+                      <h3 style={{ fontSize: '16px', fontWeight: '600' }}>{selectedLead.name || 'Contact'}</h3>
+                      <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{selectedLead.phone}</p>
+                    </div>
+                  </div>
+                  <a
+                    href={`https://wa.me/${formatPhone(selectedLead.phone)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      padding: '10px 16px',
+                      background: '#25d366',
+                      border: 'none',
+                      borderRadius: '8px',
+                      color: 'white',
+                      fontSize: '13px',
+                      fontWeight: '500',
+                      textDecoration: 'none',
+                    }}
+                  >
+                    <MessageCircle size={16} />
+                    Ouvrir WhatsApp
+                    <ExternalLink size={14} />
+                  </a>
+                </div>
+
+                {/* Lead Info */}
+                {(selectedLead.email || selectedLead.property_interest || selectedLead.budget) && (
+                  <div style={{
+                    padding: '12px 16px',
+                    background: 'var(--bg-tertiary)',
+                    borderRadius: '8px',
+                    marginBottom: '20px',
+                    display: 'flex',
+                    gap: '20px',
+                    flexWrap: 'wrap',
+                    fontSize: '12px',
+                    color: 'var(--text-muted)',
+                  }}>
+                    {selectedLead.email && <span>📧 {selectedLead.email}</span>}
+                    {selectedLead.property_interest && <span>🏠 {selectedLead.property_interest}</span>}
+                    {selectedLead.budget && <span>💰 {selectedLead.budget.toLocaleString()}€</span>}
+                  </div>
+                )}
+
+                {/* Message Templates */}
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '10px' }}>
+                    Modèles de message
+                  </label>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    {messageTemplates.map(template => (
+                      <button
+                        key={template.id}
+                        onClick={() => {
+                          setSelectedTemplate(template);
+                          setCustomMessage(generateMessage(template, selectedLead));
+                        }}
+                        style={{
+                          padding: '8px 14px',
+                          background: selectedTemplate?.id === template.id ? 'rgba(37, 211, 102, 0.15)' : 'var(--bg-tertiary)',
+                          border: `1px solid ${selectedTemplate?.id === template.id ? '#25d366' : 'var(--border-color)'}`,
+                          borderRadius: '6px',
+                          color: selectedTemplate?.id === template.id ? '#25d366' : 'var(--text-secondary)',
+                          fontSize: '12px',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {template.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Message Input */}
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '10px' }}>
+                    Message
+                  </label>
+                  <textarea
+                    value={customMessage}
+                    onChange={(e) => setCustomMessage(e.target.value)}
+                    placeholder="Écrivez votre message ou sélectionnez un modèle ci-dessus..."
+                    rows={6}
+                    style={{
+                      width: '100%',
+                      padding: '14px',
+                      background: 'var(--bg-tertiary)',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: '10px',
+                      color: 'var(--text-primary)',
+                      fontSize: '14px',
+                      resize: 'vertical',
+                      lineHeight: '1.5',
+                    }}
+                  />
+                </div>
+
+                {/* Actions */}
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <button
+                    onClick={() => copyMessage(customMessage)}
+                    disabled={!customMessage}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      padding: '12px 20px',
+                      background: copied ? 'rgba(34, 197, 94, 0.1)' : 'var(--bg-tertiary)',
+                      border: `1px solid ${copied ? 'rgba(34, 197, 94, 0.3)' : 'var(--border-color)'}`,
+                      borderRadius: '8px',
+                      color: copied ? '#22c55e' : 'var(--text-secondary)',
+                      fontSize: '14px',
+                      cursor: customMessage ? 'pointer' : 'not-allowed',
+                      opacity: customMessage ? 1 : 0.5,
+                    }}
+                  >
+                    {copied ? <Check size={16} /> : <Copy size={16} />}
+                    {copied ? 'Copié' : 'Copier'}
+                  </button>
+                  <button
+                    onClick={() => openWhatsApp(selectedLead, customMessage)}
+                    disabled={!customMessage}
+                    style={{
+                      flex: 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      padding: '12px 20px',
+                      background: customMessage ? '#25d366' : 'var(--bg-tertiary)',
+                      border: 'none',
+                      borderRadius: '8px',
+                      color: customMessage ? 'white' : 'var(--text-muted)',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      cursor: customMessage ? 'pointer' : 'not-allowed',
+                    }}
+                  >
+                    <Send size={18} />
+                    Envoyer via WhatsApp
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div style={{ padding: '60px 20px', textAlign: 'center' }}>
+                <div style={{
+                  width: '80px',
+                  height: '80px',
+                  background: 'rgba(37, 211, 102, 0.1)',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 20px',
+                }}>
+                  <MessageCircle size={36} style={{ color: '#25d366' }} />
+                </div>
+                <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px' }}>
+                  Sélectionnez un contact
+                </h3>
+                <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>
+                  Choisissez un lead dans la liste pour lui envoyer un message WhatsApp
+                </p>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       <style>{`
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
       `}</style>
     </div>
   );
