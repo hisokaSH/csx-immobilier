@@ -14,7 +14,8 @@ import {
   LogOut,
   Plus,
   ChevronRight,
-  Crown
+  Crown,
+  Wrench
 } from 'lucide-react';
 
 function Sidebar() {
@@ -69,6 +70,7 @@ function Sidebar() {
     { path: '/listings', icon: Building2, label: t('nav.listings') },
     { path: '/leads', icon: Users, label: t('nav.leads'), badge: newLeadsCount > 0 ? newLeadsCount : null },
     { path: '/accounts', icon: Link2, label: t('nav.platforms') },
+    { path: '/tools', icon: Wrench, label: t('nav.tools', 'Outils'), isNew: true },
     { path: '/ai-tools', icon: Sparkles, label: t('nav.aiTools') },
     { path: '/settings', icon: Settings, label: t('nav.settings') },
   ];
@@ -194,6 +196,20 @@ function Sidebar() {
                   fontWeight: '700',
                 }}>
                   {item.badge}
+                </span>
+              )}
+              {item.isNew && (
+                <span style={{
+                  padding: '2px 6px',
+                  background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)',
+                  color: 'white',
+                  borderRadius: '4px',
+                  fontSize: '9px',
+                  fontWeight: '700',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                }}>
+                  NEW
                 </span>
               )}
               {item.hasSubmenu && (
