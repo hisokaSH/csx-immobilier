@@ -24,53 +24,134 @@ import {
 const STORAGE_KEY = 'csx_documents';
 const AGENCY_KEY = 'csx_agency_info';
 
-// Document templates based on official UNIS/CNACIM 2024 models
+// Document templates based on official sources
+// UNIS/CNACIM for mandats, Décret 2015-587 (ALUR) for bails, Décret 2016-382 for état des lieux
 const documentTemplates = [
+  // === MANDATS DE VENTE (UNIS/CNACIM Dec 2024) ===
   {
     id: 'mandat_simple_vente',
     name: 'Mandat simple de vente',
     description: 'Mandat non exclusif conforme UNIS - MAJ décembre 2024',
-    category: 'Mandats',
+    category: 'Mandats Vente',
     icon: FileCheck,
     pages: 7,
     source: 'UNIS/CNACIM',
+    legal: 'Loi n°70-9 du 2 janvier 1970 (Hoguet)',
   },
   {
     id: 'mandat_exclusif_vente',
     name: 'Mandat exclusif de vente',
     description: 'Mandat exclusif avec clause pénale - MAJ décembre 2024',
-    category: 'Mandats',
+    category: 'Mandats Vente',
     icon: FileCheck,
     pages: 7,
     source: 'UNIS/CNACIM',
+    legal: 'Loi n°70-9 du 2 janvier 1970 (Hoguet)',
   },
   {
     id: 'mandat_simple_vente_distance',
     name: 'Mandat simple - À distance',
-    description: 'Mandat conclu à distance ou hors établissement (14j rétractation)',
-    category: 'Mandats',
+    description: 'Conclu à distance ou hors établissement (14j rétractation)',
+    category: 'Mandats Vente',
     icon: FileCheck,
     pages: 8,
     source: 'UNIS/CNACIM',
+    legal: 'Loi Hoguet + Code de la consommation L221-18',
   },
   {
     id: 'mandat_exclusif_vente_distance',
     name: 'Mandat exclusif - À distance',
-    description: 'Mandat exclusif conclu à distance (14j rétractation)',
-    category: 'Mandats',
+    description: 'Exclusif conclu à distance (14j rétractation)',
+    category: 'Mandats Vente',
     icon: FileCheck,
     pages: 8,
     source: 'UNIS/CNACIM',
+    legal: 'Loi Hoguet + Code de la consommation L221-18',
   },
+  // === MANDATS DE RECHERCHE (Loi Hoguet) ===
+  {
+    id: 'mandat_recherche_simple',
+    name: 'Mandat de recherche simple',
+    description: 'Mandat acquéreur non exclusif (chasseur immobilier)',
+    category: 'Mandats Recherche',
+    icon: FileCheck,
+    pages: 4,
+    source: 'Loi Hoguet',
+    legal: 'Loi n°70-9 du 2 janvier 1970, art. 6',
+  },
+  {
+    id: 'mandat_recherche_exclusif',
+    name: 'Mandat de recherche exclusif',
+    description: 'Mandat acquéreur exclusif avec clause pénale',
+    category: 'Mandats Recherche',
+    icon: FileCheck,
+    pages: 5,
+    source: 'Loi Hoguet',
+    legal: 'Loi n°70-9 du 2 janvier 1970, art. 6 et 78',
+  },
+  // === LOCATION ===
+  {
+    id: 'mandat_location',
+    name: 'Mandat de location',
+    description: 'Mandat pour mise en location d\'un bien',
+    category: 'Location',
+    icon: FileCheck,
+    pages: 4,
+    source: 'Loi Hoguet',
+    legal: 'Loi n°70-9 du 2 janvier 1970',
+  },
+  {
+    id: 'bail_habitation_vide',
+    name: 'Bail d\'habitation vide',
+    description: 'Contrat type conforme loi ALUR (logement non meublé)',
+    category: 'Location',
+    icon: FileText,
+    pages: 6,
+    source: 'Décret 2015-587',
+    legal: 'Loi n°89-462 du 6 juillet 1989 modifiée par loi ALUR',
+  },
+  {
+    id: 'bail_habitation_meuble',
+    name: 'Bail d\'habitation meublé',
+    description: 'Contrat type conforme loi ALUR (logement meublé)',
+    category: 'Location',
+    icon: FileText,
+    pages: 6,
+    source: 'Décret 2015-587',
+    legal: 'Loi n°89-462 du 6 juillet 1989 modifiée par loi ALUR',
+  },
+  {
+    id: 'etat_des_lieux',
+    name: 'État des lieux',
+    description: 'Entrée/sortie conforme décret 2016-382',
+    category: 'Location',
+    icon: ClipboardList,
+    pages: 4,
+    source: 'Décret 2016-382',
+    legal: 'Loi n°89-462, art. 3-2',
+  },
+  {
+    id: 'quittance_loyer',
+    name: 'Quittance de loyer',
+    description: 'Attestation de paiement du loyer',
+    category: 'Location',
+    icon: FileText,
+    pages: 1,
+    source: 'Loi 89-462',
+    legal: 'Loi n°89-462, art. 21',
+  },
+  // === VISITES ===
   {
     id: 'bon_visite',
     name: 'Bon de visite',
-    description: 'Attestation de visite avec engagement',
+    description: 'Attestation de visite avec clause non-contournement',
     category: 'Visites',
     icon: ClipboardList,
     pages: 1,
-    source: 'Modèle standard',
+    source: 'Usage professionnel',
+    legal: 'Recommandé FNAIM/UNIS',
   },
+  // === TRANSACTIONS ===
   {
     id: 'offre_achat',
     name: 'Offre d\'achat',
@@ -78,11 +159,22 @@ const documentTemplates = [
     category: 'Transactions',
     icon: FileText,
     pages: 2,
-    source: 'Modèle standard',
+    source: 'Code civil',
+    legal: 'Art. 1583 et 1589 Code civil',
+  },
+  {
+    id: 'attestation_bien',
+    name: 'Attestation de bien',
+    description: 'Fiche descriptive du bien (surface, DPE, prix)',
+    category: 'Transactions',
+    icon: FileText,
+    pages: 1,
+    source: 'Loi Hoguet',
+    legal: 'Décret n°72-678, art. 72',
   },
 ];
 
-const categories = ['Tous', 'Mandats', 'Visites', 'Transactions'];
+const categories = ['Tous', 'Mandats Vente', 'Mandats Recherche', 'Location', 'Visites', 'Transactions'];
 
 function DocumentGenerator() {
   const [selectedCategory, setSelectedCategory] = useState('Tous');
@@ -161,6 +253,7 @@ function DocumentGenerator() {
       bien_libre: 'oui',
       diagnostics_charge: 'mandant',
       sequestre: 'notaire',
+      lieu_signature: '',
     });
   };
 
@@ -189,8 +282,52 @@ function DocumentGenerator() {
     }));
   };
 
-  const formatCurrency = (amount) => amount ? new Intl.NumberFormat('fr-FR').format(amount) + ' €' : '..........';
-  const formatDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '....................';
+  // Use "euros" text instead of € symbol for jsPDF compatibility
+  const formatCurrency = (amount) => {
+    if (!amount) return '..........';
+    const formatted = new Intl.NumberFormat('fr-FR').format(amount);
+    return formatted + ' euros';
+  };
+  const formatDate = (d) => {
+    if (!d) return '....................';
+    const date = new Date(d);
+    const months = ['janvier', 'fevrier', 'mars', 'avril', 'mai', 'juin', 'juillet', 'aout', 'septembre', 'octobre', 'novembre', 'decembre'];
+    return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+  };
+
+  // Sanitize text for jsPDF - replace problematic characters
+  const sanitizeText = (text) => {
+    if (!text) return '';
+    return String(text)
+      .replace(/€/g, 'euros')
+      .replace(/é/g, 'e')
+      .replace(/è/g, 'e')
+      .replace(/ê/g, 'e')
+      .replace(/ë/g, 'e')
+      .replace(/à/g, 'a')
+      .replace(/â/g, 'a')
+      .replace(/ù/g, 'u')
+      .replace(/û/g, 'u')
+      .replace(/ô/g, 'o')
+      .replace(/î/g, 'i')
+      .replace(/ï/g, 'i')
+      .replace(/ç/g, 'c')
+      .replace(/œ/g, 'oe')
+      .replace(/É/g, 'E')
+      .replace(/È/g, 'E')
+      .replace(/Ê/g, 'E')
+      .replace(/À/g, 'A')
+      .replace(/Ù/g, 'U')
+      .replace(/Ô/g, 'O')
+      .replace(/Î/g, 'I')
+      .replace(/Ç/g, 'C')
+      .replace(/'/g, "'")
+      .replace(/«/g, '"')
+      .replace(/»/g, '"')
+      .replace(/–/g, '-')
+      .replace(/—/g, '-')
+      .replace(/…/g, '...');
+  };
 
   // Generate complete legal PDF
   const generatePDF = async () => {
@@ -212,8 +349,8 @@ function DocumentGenerator() {
       const footer = () => {
         doc.setFontSize(8);
         doc.setTextColor(128);
-        doc.text(`UNIS – Mandat ${isExclusif ? 'exclusif' : 'simple'}${isDistance ? ' à distance' : ''} - Page ${pageNum} sur ${selectedTemplate.pages}`, m, ph - 8);
-        doc.text('MAJ décembre 2024 (clause pénale)', pw - m, ph - 8, { align: 'right' });
+        doc.text(sanitizeText(`UNIS - Mandat ${isExclusif ? 'exclusif' : 'simple'}${isDistance ? ' a distance' : ''} - Page ${pageNum} sur ${selectedTemplate.pages}`), m, ph - 8);
+        doc.text(sanitizeText('MAJ decembre 2024 (clause penale)'), pw - m, ph - 8, { align: 'right' });
       };
 
       const newPage = () => {
@@ -230,7 +367,8 @@ function DocumentGenerator() {
         doc.setFontSize(size);
         doc.setFont('helvetica', bold ? 'bold' : italic ? 'italic' : 'normal');
         doc.setTextColor(...color);
-        const lines = doc.splitTextToSize(t, cw - indent);
+        const sanitized = sanitizeText(t);
+        const lines = doc.splitTextToSize(sanitized, cw - indent);
         lines.forEach(line => {
           checkSpace(5);
           if (center) doc.text(line, pw / 2, y, { align: 'center' });
@@ -246,9 +384,10 @@ function DocumentGenerator() {
       const checkbox = (t, checked = false) => {
         checkSpace(5);
         doc.rect(m, y - 2.5, 3, 3);
-        if (checked) { doc.setFontSize(10); doc.text('×', m + 0.5, y); }
+        if (checked) { doc.setFontSize(10); doc.text('x', m + 0.5, y); }
         doc.setFontSize(9);
-        doc.text(t, m + 5, y);
+        const sanitized = sanitizeText(t);
+        doc.text(sanitized, m + 5, y);
         y += 4;
       };
 
@@ -262,19 +401,19 @@ function DocumentGenerator() {
         doc.setTextColor(120, 100, 40);
         doc.text('ATTENTION', m + 2, y + 5);
         doc.setFontSize(7);
-        doc.text('Ce document est une trame susceptible d\'être adaptée par l\'agent immobilier à chaque situation ou dossier.', m + 2, y + 9);
-        doc.text('Il ne pourra être utilisé en l\'état. En conséquence, la responsabilité de l\'UNIS ne pourra être engagée du fait de son utilisation.', m + 2, y + 13);
+        doc.text(sanitizeText('Ce document est une trame susceptible d\'etre adaptee par l\'agent immobilier a chaque situation ou dossier.'), m + 2, y + 9);
+        doc.text(sanitizeText('Il ne pourra etre utilise en l\'etat. En consequence, la responsabilite de l\'UNIS ne pourra etre engagee du fait de son utilisation.'), m + 2, y + 13);
         y += 22;
 
         // Title
         title(`MANDAT ${isExclusif ? 'EXCLUSIF' : 'SIMPLE'} DE VENTE`);
-        if (isDistance) title('CONCLU À DISTANCE OU HORS ÉTABLISSEMENT');
+        if (isDistance) title('CONCLU A DISTANCE OU HORS ETABLISSEMENT');
         y += 2;
 
         // Agency header for distance contracts
         if (isDistance) {
           text(`${agencyInfo.nom || 'Société .............................'} (${agencyInfo.forme_juridique || '.........'})`, { size: 9, bold: true });
-          text(`Capital : ${agencyInfo.capital || '..........'} € - RCS : ${agencyInfo.rcs || '..........'} - TVA : ${agencyInfo.tva || '..........'}`, { size: 8 });
+          text(`Capital : ${agencyInfo.capital || '..........'} euros - RCS : ${agencyInfo.rcs || '..........'} - TVA : ${agencyInfo.tva || '..........'}`, { size: 8 });
           text(`Siège : ${agencyInfo.siege || '..........'}`, { size: 8 });
           text(`Tél : ${agencyInfo.telephone || '..........'} - Email : ${agencyInfo.email || '..........'}`, { size: 8 });
           text(`Carte professionnelle n° ${agencyInfo.carte_pro || '..........'} délivrée par la CCI ${agencyInfo.carte_delivree_par || '..........'}`, { size: 8 });
@@ -313,7 +452,7 @@ function DocumentGenerator() {
         y += 2;
         if (!isDistance) {
           text(`Le Cabinet/l'agence ${agencyInfo.nom || '.............................'} (${agencyInfo.forme_juridique || '.........'})`, { size: 9 });
-          text(`Capital : ${agencyInfo.capital || '..........'} € - Siège : ${agencyInfo.siege || '..........'}`, { size: 8 });
+          text(`Capital : ${agencyInfo.capital || '..........'} euros - Siege : ${agencyInfo.siege || '..........'}`, { size: 8 });
           text(`RCS : ${agencyInfo.rcs || '..........'} - Carte pro n° ${agencyInfo.carte_pro || '..........'} (CCI ${agencyInfo.carte_delivree_par || '..........'})`, { size: 8 });
           text(`Garantie : ${agencyInfo.garantie_nom || '..........'} pour ${formatCurrency(agencyInfo.garantie_montant)}`, { size: 8 });
           text(`Compte séquestre n° ${agencyInfo.compte_sequestre || '..........'} - ${agencyInfo.banque_sequestre || '..........'}`, { size: 8 });
@@ -356,10 +495,10 @@ function DocumentGenerator() {
         
         // Article 2 - Durée
         newPage();
-        article('Art. 2. Durée – Révocation');
-        text('A – Durée', { size: 9, bold: true });
-        checkbox(`Le présent mandat est conclu pour une durée de ${formData.mandat_duree || '__'} mois à compter du ${formatDate(formData.mandat_date)}.`, formData.mandat_tacite === 'non');
-        checkbox(`Le présent mandat est conclu pour une durée de ${formData.mandat_duree || '__'} mois à compter du ${formatDate(formData.mandat_date)}. Il se renouvellera par tacite reconduction par période de ${formData.mandat_duree || '__'} mois.`, formData.mandat_tacite === 'oui');
+        article('Art. 2. Duree - Revocation');
+        text('A - Duree', { size: 9, bold: true });
+        checkbox(`Le present mandat est conclu pour une duree de ${formData.mandat_duree || '__'} mois a compter du ${formatDate(formData.mandat_date)}.`, formData.mandat_tacite === 'non');
+        checkbox(`Le present mandat est conclu pour une duree de ${formData.mandat_duree || '__'} mois a compter du ${formatDate(formData.mandat_date)}. Il se renouvellera par tacite reconduction par periode de ${formData.mandat_duree || '__'} mois.`, formData.mandat_tacite === 'oui');
         y += 3;
 
         if (formData.mandat_tacite === 'oui') {
@@ -367,7 +506,7 @@ function DocumentGenerator() {
           doc.rect(m, y, cw, 35, 'F');
           doc.setFontSize(7);
           doc.setTextColor(60, 60, 60);
-          const taciteText = 'POUR LES CONTRATS DE PRESTATIONS DE SERVICES CONCLUS POUR UNE DURÉE DÉTERMINÉE AVEC UNE CLAUSE DE RECONDUCTION TACITE, LE PROFESSIONNEL PRESTATAIRE DE SERVICES INFORME LE CONSOMMATEUR PAR ÉCRIT, PAR LETTRE NOMINATIVE OU COURRIER ÉLECTRONIQUE DÉDIÉS, AU PLUS TÔT TROIS MOIS ET AU PLUS TARD UN MOIS AVANT LE TERME DE LA PÉRIODE AUTORISANT LE REJET DE LA RECONDUCTION, DE LA POSSIBILITÉ DE NE PAS RECONDUIRE LE CONTRAT QU\'IL A CONCLU AVEC UNE CLAUSE DE RECONDUCTION TACITE. (article L215-1 du code de la consommation)';
+          const taciteText = sanitizeText('POUR LES CONTRATS DE PRESTATIONS DE SERVICES CONCLUS POUR UNE DUREE DETERMINEE AVEC UNE CLAUSE DE RECONDUCTION TACITE, LE PROFESSIONNEL PRESTATAIRE DE SERVICES INFORME LE CONSOMMATEUR PAR ECRIT, PAR LETTRE NOMINATIVE OU COURRIER ELECTRONIQUE DEDIES, AU PLUS TOT TROIS MOIS ET AU PLUS TARD UN MOIS AVANT LE TERME DE LA PERIODE AUTORISANT LE REJET DE LA RECONDUCTION, DE LA POSSIBILITE DE NE PAS RECONDUIRE LE CONTRAT QU\'IL A CONCLU AVEC UNE CLAUSE DE RECONDUCTION TACITE. (article L215-1 du code de la consommation)');
           const taciteLines = doc.splitTextToSize(taciteText, cw - 4);
           taciteLines.forEach((line, i) => {
             doc.text(line, m + 2, y + 4 + i * 3);
@@ -375,19 +514,19 @@ function DocumentGenerator() {
           y += 38;
         }
 
-        text('B – Révocation', { size: 9, bold: true });
+        text('B - Revocation', { size: 9, bold: true });
         if (isExclusif) {
           doc.setFillColor(255, 250, 240);
           doc.rect(m, y, cw, 15, 'F');
           doc.setFontSize(8);
           doc.setFont('helvetica', 'bold');
           doc.setTextColor(100, 60, 0);
-          doc.text('PASSÉ UN DÉLAI DE TROIS MOIS À COMPTER DE SA SIGNATURE, LE MANDAT PEUT ÊTRE DÉNONCÉ', m + 2, y + 5);
-          doc.text('À TOUT MOMENT PAR CHACUNE DES PARTIES, À CHARGE POUR CELLE QUI ENTEND Y METTRE FIN', m + 2, y + 9);
-          doc.text('D\'EN AVISER L\'AUTRE PARTIE QUINZE JOURS À L\'AVANCE PAR LETTRE RECOMMANDÉE AVEC AR.', m + 2, y + 13);
+          doc.text(sanitizeText('PASSE UN DELAI DE TROIS MOIS A COMPTER DE SA SIGNATURE, LE MANDAT PEUT ETRE DENONCE'), m + 2, y + 5);
+          doc.text(sanitizeText('A TOUT MOMENT PAR CHACUNE DES PARTIES, A CHARGE POUR CELLE QUI ENTEND Y METTRE FIN'), m + 2, y + 9);
+          doc.text(sanitizeText('D\'EN AVISER L\'AUTRE PARTIE QUINZE JOURS A L\'AVANCE PAR LETTRE RECOMMANDEE AVEC AR.'), m + 2, y + 13);
           y += 18;
         } else {
-          text('Passé un délai de trois mois à compter de sa signature, le mandat peut être dénoncé à tout moment par chacune des parties, à charge pour celle qui entend y mettre fin d\'en aviser l\'autre partie quinze jours à l\'avance par lettre recommandée avec demande d\'avis de réception.', { size: 8 });
+          text('Passe un delai de trois mois a compter de sa signature, le mandat peut etre denonce a tout moment par chacune des parties, a charge pour celle qui entend y mettre fin d\'en aviser l\'autre partie quinze jours a l\'avance par lettre recommandee avec demande d\'avis de reception.', { size: 8 });
         }
 
         // Article 3 - Obligations du Mandant
@@ -427,11 +566,11 @@ function DocumentGenerator() {
         doc.setFontSize(9);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(150, 50, 50);
-        doc.text('CLAUSE PÉNALE', m + 2, y + 5);
+        doc.text('CLAUSE PENALE', m + 2, y + 5);
         doc.setFontSize(7);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(80, 40, 40);
-        const penaleText = 'En cas de non-respect des obligations énoncées ci-dessus le Mandant s\'engage expressément à verser au Mandataire, en vertu des articles 1217 et 1221 et 1231-5 du code civil, une indemnité compensatrice égale au montant de la rémunération prévue aux présentes, si le manquement se trouve à l\'origine de la perte de rémunération par le Mandataire. Le Mandant sera tenu au paiement notamment en cas de manquement aux obligations 11, 12 et 13.';
+        const penaleText = sanitizeText('En cas de non-respect des obligations enoncees ci-dessus le Mandant s\'engage expressement a verser au Mandataire, en vertu des articles 1217 et 1221 et 1231-5 du code civil, une indemnite compensatrice egale au montant de la remuneration prevue aux presentes, si le manquement se trouve a l\'origine de la perte de remuneration par le Mandataire. Le Mandant sera tenu au paiement notamment en cas de manquement aux obligations 11, 12 et 13.');
         const penaleLines = doc.splitTextToSize(penaleText, cw - 4);
         penaleLines.forEach((line, i) => doc.text(line, m + 2, y + 10 + i * 3));
         y += 28;
@@ -493,44 +632,44 @@ function DocumentGenerator() {
 
         // Rétractation (distance only)
         if (isDistance) {
-          article('Art. 10. Droit de rétractation');
+          article('Art. 10. Droit de retractation');
           doc.setFillColor(240, 248, 255);
           doc.rect(m, y, cw, 30, 'F');
           doc.setFontSize(8);
           doc.setTextColor(0, 60, 120);
-          doc.text('Le Mandant a le droit de se rétracter du présent contrat sans donner de motif dans un délai de QUATORZE JOURS.', m + 2, y + 5);
-          doc.text('Le délai de rétractation expire quatorze jours après le jour de la conclusion du contrat.', m + 2, y + 10);
-          doc.text('Pour exercer ce droit, le Mandant doit notifier au Mandataire sa décision par déclaration dénuée d\'ambiguïté', m + 2, y + 15);
-          doc.text('(lettre recommandée, télécopie ou courrier électronique).', m + 2, y + 20);
-          doc.text('Un formulaire de rétractation est joint en annexe du présent contrat.', m + 2, y + 25);
+          doc.text(sanitizeText('Le Mandant a le droit de se retracter du present contrat sans donner de motif dans un delai de QUATORZE JOURS.'), m + 2, y + 5);
+          doc.text(sanitizeText('Le delai de retractation expire quatorze jours apres le jour de la conclusion du contrat.'), m + 2, y + 10);
+          doc.text(sanitizeText('Pour exercer ce droit, le Mandant doit notifier au Mandataire sa decision par declaration denuee d\'ambiguite'), m + 2, y + 15);
+          doc.text(sanitizeText('(lettre recommandee, telecopie ou courrier electronique).'), m + 2, y + 20);
+          doc.text(sanitizeText('Un formulaire de retractation est joint en annexe du present contrat.'), m + 2, y + 25);
           y += 33;
         }
 
         // Article RGPD
-        article(isDistance ? 'Art. 11. Traitement des données personnelles' : 'Art. 10. Traitement des données personnelles');
-        text('Conformément à la loi n°78-17 du 6 janvier 1978 et au Règlement européen (UE) 2016/679 (RGPD), le Mandant est informé que le Mandataire procède au traitement de ses données personnelles. Ces données seront conservées 5 ans après la fin de la relation commerciale (10 ans pour les mandats et registres légaux).', { size: 7 });
-        text('Le Mandant bénéficie d\'un droit d\'accès, de rectification et d\'effacement de ses données. Réclamation : CNIL - 3 Place de Fontenoy - 75334 PARIS CEDEX', { size: 7 });
+        article(isDistance ? 'Art. 11. Traitement des donnees personnelles' : 'Art. 10. Traitement des donnees personnelles');
+        text('Conformement a la loi n 78-17 du 6 janvier 1978 et au Reglement europeen (UE) 2016/679 (RGPD), le Mandant est informe que le Mandataire procede au traitement de ses donnees personnelles. Ces donnees seront conservees 5 ans apres la fin de la relation commerciale (10 ans pour les mandats et registres legaux).', { size: 7 });
+        text('Le Mandant beneficie d\'un droit d\'acces, de rectification et d\'effacement de ses donnees. Reclamation : CNIL - 3 Place de Fontenoy - 75334 PARIS CEDEX', { size: 7 });
 
         // Article Bloctel
-        article(isDistance ? 'Art. 12. Opposition au démarchage' : 'Art. 11. Opposition au démarchage');
-        text('Le Mandant est informé de l\'existence de la liste d\'opposition au démarchage téléphonique « Bloctel » : https://conso.bloctel.fr/', { size: 8 });
+        article(isDistance ? 'Art. 12. Opposition au demarchage' : 'Art. 11. Opposition au demarchage');
+        text('Le Mandant est informe de l\'existence de la liste d\'opposition au demarchage telephonique "Bloctel" : https://conso.bloctel.fr/', { size: 8 });
 
         // Article Non-discrimination
         article(isDistance ? 'Art. 13. Non-discrimination' : 'Art. 12. Non-discrimination');
-        text('Aucune personne ne peut se voir refuser l\'acquisition d\'un logement pour un motif discriminatoire défini à l\'article 225-1 du Code pénal. Les parties prennent l\'engagement exprès de n\'opposer aucun refus discriminatoire. Toute discrimination est punie de 3 ans d\'emprisonnement et 45 000 € d\'amende (art. 225-2 CP).', { size: 8 });
+        text('Aucune personne ne peut se voir refuser l\'acquisition d\'un logement pour un motif discriminatoire defini a l\'article 225-1 du Code penal. Les parties prennent l\'engagement expres de n\'opposer aucun refus discriminatoire. Toute discrimination est punie de 3 ans d\'emprisonnement et 45 000 euros d\'amende (art. 225-2 CP).', { size: 8 });
 
         // Consentement RGPD
         y += 5;
-        checkbox('J\'accepte que mes données soient utilisées pour m\'adresser des offres commerciales.', false);
-        checkbox('J\'accepte que mes données soient transmises à des partenaires commerciaux.', false);
+        checkbox('J\'accepte que mes donnees soient utilisees pour m\'adresser des offres commerciales.', false);
+        checkbox('J\'accepte que mes donnees soient transmises a des partenaires commerciaux.', false);
 
         // Signatures
         newPage();
         y += 10;
-        text(`Fait à ${formData.lieu_signature || '.............................'} le ${formatDate(formData.mandat_date)} en deux originaux.`, { size: 10 });
-        text('Un exemplaire numéroté, daté et signé est remis au Mandant qui le reconnaît.', { size: 9 });
+        text(`Fait a ${formData.lieu_signature || '.............................'} le ${formatDate(formData.mandat_date)} en deux originaux.`, { size: 10 });
+        text('Un exemplaire numerote, date et signe est remis au Mandant qui le reconnait.', { size: 9 });
         y += 5;
-        text(`Approuvés ............... mots rayés nuls, ............... lignes.`, { size: 8, italic: true });
+        text(`Approuves ............... mots rayes nuls, ............... lignes.`, { size: 8, italic: true });
         y += 15;
 
         // Signature boxes
@@ -543,11 +682,11 @@ function DocumentGenerator() {
         y += 4;
         doc.setFontSize(8);
         doc.setFont('helvetica', 'italic');
-        doc.text('Faire précéder la signature de', m + bw / 2, y, { align: 'center' });
-        doc.text('Faire précéder la signature de', m + bw + 20 + bw / 2, y, { align: 'center' });
+        doc.text(sanitizeText('Faire preceder la signature de'), m + bw / 2, y, { align: 'center' });
+        doc.text(sanitizeText('Faire preceder la signature de'), m + bw + 20 + bw / 2, y, { align: 'center' });
         y += 4;
-        doc.text('"Lu et approuvé. Bon pour mandat"', m + bw / 2, y, { align: 'center' });
-        doc.text('"Bon pour acceptation de mandat"', m + bw + 20 + bw / 2, y, { align: 'center' });
+        doc.text(sanitizeText('"Lu et approuve. Bon pour mandat"'), m + bw / 2, y, { align: 'center' });
+        doc.text(sanitizeText('"Bon pour acceptation de mandat"'), m + bw + 20 + bw / 2, y, { align: 'center' });
         y += 5;
         doc.setDrawColor(180);
         doc.rect(m, y, bw, 40);
@@ -556,16 +695,16 @@ function DocumentGenerator() {
         // Retractation form for distance
         if (isDistance) {
           newPage();
-          title('FORMULAIRE DE RÉTRACTATION');
-          text('(Veuillez compléter et renvoyer le présent formulaire uniquement si vous souhaitez vous rétracter du contrat)', { size: 8, italic: true });
+          title('FORMULAIRE DE RETRACTATION');
+          text('(Veuillez completer et renvoyer le present formulaire uniquement si vous souhaitez vous retracter du contrat)', { size: 8, italic: true });
           y += 5;
-          text(`À l'attention de : ${agencyInfo.nom || '............................'}`, { size: 9 });
+          text(`A l'attention de : ${agencyInfo.nom || '............................'}`, { size: 9 });
           text(`Adresse : ${agencyInfo.siege || '............................'}`, { size: 9 });
           text(`Email : ${agencyInfo.email || '............................'}`, { size: 9 });
           y += 5;
-          text('Je vous notifie par la présente ma rétractation du contrat portant sur la prestation de service ci-dessous :', { size: 9 });
+          text('Je vous notifie par la presente ma retractation du contrat portant sur la prestation de service ci-dessous :', { size: 9 });
           y += 3;
-          text('Commandé le / reçu le : ............................', { size: 9 });
+          text('Commande le / recu le : ............................', { size: 9 });
           text('Nom du consommateur : ............................', { size: 9 });
           text('Adresse du consommateur : ............................', { size: 9 });
           y += 10;
@@ -580,24 +719,24 @@ function DocumentGenerator() {
       else if (selectedTemplate.id === 'bon_visite') {
         title('BON DE VISITE');
         y += 10;
-        text(`Je soussigné(e) ${formData.client_civilite || ''} ${formData.client_nom || '............................'}`, { size: 10 });
+        text(`Je soussigne(e) ${formData.client_civilite || ''} ${formData.client_nom || '............................'}`, { size: 10 });
         text(`Demeurant : ${formData.client_adresse || '............................'}`, { size: 9 });
-        text(`Téléphone : ${formData.client_telephone || '..........'} - Email : ${formData.client_email || '..........'}`, { size: 9 });
+        text(`Telephone : ${formData.client_telephone || '..........'} - Email : ${formData.client_email || '..........'}`, { size: 9 });
         y += 5;
-        text('Reconnais avoir visité le bien suivant :', { size: 10, bold: true });
+        text('Reconnais avoir visite le bien suivant :', { size: 10, bold: true });
         y += 3;
-        field('Référence', formData.bien_reference);
+        field('Reference', formData.bien_reference);
         field('Adresse', formData.bien_adresse);
-        field('Prix affiché', formatCurrency(formData.prix_vente));
+        field('Prix affiche', formatCurrency(formData.prix_vente));
         y += 5;
         field('Date de la visite', formatDate(formData.visite_date));
         field('Heure', formData.visite_heure);
-        field('Agent présent', formData.agent_nom);
+        field('Agent present', formData.agent_nom);
         y += 8;
-        text(`Présenté par l'intermédiaire de l'agence ${agencyInfo.nom || '............................'}`, { size: 9 });
-        text('Je m\'engage à ne pas traiter directement ou indirectement avec le propriétaire ou tout autre intermédiaire pour ce bien, pendant la durée du mandat et les 12 mois suivants.', { size: 8 });
+        text(`Presente par l'intermediaire de l'agence ${agencyInfo.nom || '............................'}`, { size: 9 });
+        text('Je m\'engage a ne pas traiter directement ou indirectement avec le proprietaire ou tout autre intermediaire pour ce bien, pendant la duree du mandat et les 12 mois suivants.', { size: 8 });
         y += 15;
-        text(`Fait à ........................ le ${formatDate(formData.visite_date || new Date().toISOString())}`, { size: 10 });
+        text(`Fait a ........................ le ${formatDate(formData.visite_date || new Date().toISOString())}`, { size: 10 });
         y += 10;
         text('Signature du visiteur :', { size: 9 });
         doc.rect(m, y + 2, 70, 30);
@@ -609,38 +748,38 @@ function DocumentGenerator() {
         text('(Article 1583 du Code civil)', { size: 8, italic: true, center: true, color: [100,100,100] });
         y += 8;
 
-        text('L\'ACQUÉREUR', { size: 10, bold: true });
+        text('L\'ACQUEREUR', { size: 10, bold: true });
         text(`${formData.acquereur_civilite || ''} ${formData.acquereur_nom || '............................'}`, { size: 9 });
         text(`Demeurant : ${formData.acquereur_adresse || '............................'}`, { size: 9 });
-        text(`Téléphone : ${formData.acquereur_telephone || '..........'} - Email : ${formData.acquereur_email || '..........'}`, { size: 9 });
+        text(`Telephone : ${formData.acquereur_telephone || '..........'} - Email : ${formData.acquereur_email || '..........'}`, { size: 9 });
         y += 5;
 
         text('FAIT L\'OFFRE D\'ACQUISITION DU BIEN SUIVANT', { size: 10, bold: true });
         field('Adresse du bien', formData.bien_adresse);
-        field('Appartenant à', formData.vendeur_nom);
+        field('Appartenant a', formData.vendeur_nom);
         y += 5;
 
         text('CONDITIONS DE L\'OFFRE', { size: 10, bold: true });
-        field('Prix demandé', formatCurrency(formData.prix_demande));
+        field('Prix demande', formatCurrency(formData.prix_demande));
         doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
         y += 3;
-        doc.text(`PRIX PROPOSÉ : ${formatCurrency(formData.prix_offre)}`, m, y);
+        doc.text(sanitizeText(`PRIX PROPOSE : ${formatCurrency(formData.prix_offre)}`), m, y);
         y += 8;
         field('Mode de financement', formData.financement);
         if (formData.apport) field('Apport personnel', formatCurrency(formData.apport));
-        if (formData.pret) field('Montant du prêt envisagé', formatCurrency(formData.pret));
+        if (formData.pret) field('Montant du pret envisage', formatCurrency(formData.pret));
         y += 3;
-        text(`Cette offre est valable ${formData.validite || '10'} jours à compter de ce jour.`, { size: 9, bold: true });
+        text(`Cette offre est valable ${formData.validite || '10'} jours a compter de ce jour.`, { size: 9, bold: true });
         y += 3;
         text('CONDITIONS SUSPENSIVES', { size: 10, bold: true });
-        text(formData.conditions || 'Sous réserve de l\'obtention d\'un prêt immobilier aux conditions du marché.', { size: 9 });
+        text(formData.conditions || 'Sous reserve de l\'obtention d\'un pret immobilier aux conditions du marche.', { size: 9 });
         y += 10;
-        text(`Fait à ........................ le ${formatDate(new Date().toISOString())}`, { size: 10 });
+        text(`Fait a ........................ le ${formatDate(new Date().toISOString())}`, { size: 10 });
         y += 10;
         const sbw = (cw - 20) / 2;
-        doc.text('Signature de l\'acquéreur', m, y);
-        doc.text('Signature du vendeur (pour acceptation)', m + sbw + 20, y);
+        doc.text(sanitizeText('Signature de l\'acquereur'), m, y);
+        doc.text(sanitizeText('Signature du vendeur (pour acceptation)'), m + sbw + 20, y);
         y += 5;
         doc.rect(m, y, sbw, 35);
         doc.rect(m + sbw + 20, y, sbw, 35);
