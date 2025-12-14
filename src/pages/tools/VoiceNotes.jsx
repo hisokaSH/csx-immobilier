@@ -146,6 +146,49 @@ function VoiceNotes() {
     setError(null);
   };
 
+  // Smart local formatter - fallback if API fails
+  const formatDescriptionLocally = (text, template) => {
+    const templateName = propertyTemplates.find(t => t.id === template)?.name || 'Bien';
+    
+    // Clean and normalize text
+    let cleaned = text.replace(/\s+/g, ' ').trim();
+    
+    // Extract key information
+    const surfaceMatch = cleaned.match(/(\d+)\s*(m2|m²|mètres?\s*carrés?)/i);
+    
+    // Keywords detection
+    const luxuryWords = ['luxueux', 'luxe', 'prestige', 'standing', 'exception'];
+    const viewWords = ['vue', 'panorama', 'mer', 'montagne'];
+    const amenityWords = ['piscine', 'terrasse', 'balcon', 'parking', 'garage', 'cave', 'ascenseur'];
+    
+    const hasLuxury = luxuryWords.some(w => cleaned.toLowerCase().includes(w));
+    const hasView = viewWords.some(w => cleaned.toLowerCase().includes(w));
+    const foundAmenities = amenityWords.filter(w => cleaned.toLowerCase().includes(w));
+    
+    // Build description
+    let parts = [];
+    
+    let opening = hasLuxury ? `Magnifique ${templateName.toLowerCase()} de standing` : `Superbe ${templateName.toLowerCase()}`;
+    if (surfaceMatch) opening += ` de ${surfaceMatch[1]} m²`;
+    parts.push(opening + '.');
+    
+    if (cleaned.toLowerCase().includes('sur ')) {
+      const locationMatch = cleaned.match(/sur\s+([^,.\d]+)/i);
+      if (locationMatch) parts.push(`Idéalement situé sur ${locationMatch[1].trim()}.`);
+    }
+    
+    const viewMatch = cleaned.match(/vue\s+([^,.\d]+)/i);
+    if (viewMatch) parts.push(`Vue ${viewMatch[1].trim()} exceptionnelle.`);
+    
+    if (foundAmenities.length > 0) {
+      parts.push(`Ce bien dispose de ${foundAmenities.join(', ')}.`);
+    }
+    
+    parts.push(hasLuxury ? 'Un bien d\'exception à découvrir sans tarder.' : 'À visiter rapidement.');
+    
+    return parts.join('\n\n');
+  };
+
   const generateDescription = async () => {
     if (!transcription.trim()) {
       setError('Veuillez d\'abord dicter une description');
@@ -156,73 +199,48 @@ function VoiceNotes() {
     setError(null);
 
     try {
-      // Call Claude API to generate formatted description
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      // Call our serverless API
+      const response = await fetch('/api/generate-description', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': import.meta.env.VITE_ANTHROPIC_API_KEY || '',
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 1024,
-          messages: [{
-            role: 'user',
-            content: `Tu es un expert en rédaction d'annonces immobilières. Transforme ces notes vocales en une description professionnelle et attractive pour un(e) ${propertyTemplates.find(t => t.id === selectedTemplate)?.name || 'bien immobilier'}.
-
-Notes vocales:
-${transcription}
-
-Rédige une description:
-- Structurée et fluide
-- Mettant en valeur les points forts
-- Professionnelle mais chaleureuse
-- En français
-- Sans inventer d'informations non mentionnées
-
-Description:`
-          }]
-        })
+          transcription: transcription.trim(),
+          propertyType: propertyTemplates.find(t => t.id === selectedTemplate)?.name || 'bien immobilier',
+        }),
       });
 
       if (!response.ok) {
-        throw new Error('Erreur API');
+        throw new Error('API error');
       }
 
       const data = await response.json();
-      const description = data.content[0]?.text || '';
-      setGeneratedDescription(description);
-
-      // Save to recent notes
-      const note = {
-        id: Date.now(),
-        date: new Date().toISOString(),
-        transcription: transcription.trim(),
-        description,
-        template: selectedTemplate,
-      };
-      const newNotes = [note, ...recentNotes].slice(0, 5);
-      setRecentNotes(newNotes);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(newNotes));
+      
+      if (data.description) {
+        setGeneratedDescription(data.description);
+      } else {
+        throw new Error('No description returned');
+      }
 
     } catch (err) {
-      console.error('Error generating description:', err);
-      // Fallback: basic formatting without AI
-      const formatted = transcription
-        .split(/[.!?]+/)
-        .filter(s => s.trim())
-        .map(s => s.trim().charAt(0).toUpperCase() + s.trim().slice(1))
-        .join('. ') + '.';
-      
+      console.error('AI generation failed, using local formatter:', err);
+      // Fallback to local formatter
+      const formatted = formatDescriptionLocally(transcription, selectedTemplate);
       setGeneratedDescription(formatted);
-      setError('API indisponible. Description formatée sans IA.');
-    } finally {
-      setIsGenerating(false);
     }
+
+    // Save to recent notes
+    const note = {
+      id: Date.now(),
+      date: new Date().toISOString(),
+      transcription: transcription.trim(),
+      description: generatedDescription,
+      template: selectedTemplate,
+    };
+    const newNotes = [note, ...recentNotes].slice(0, 5);
+    setRecentNotes(newNotes);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(newNotes));
+
+    setIsGenerating(false);
   };
 
   const copyToClipboard = async (text) => {
@@ -280,7 +298,7 @@ Description:`
           <div>
             <h1 style={{ fontSize: '28px', fontWeight: '600' }}>Notes vocales</h1>
             <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>
-              Dictez vos descriptions, l'IA les formate
+              Dictez vos descriptions, l'IA les transforme en annonces pro
             </p>
           </div>
         </div>
@@ -291,13 +309,13 @@ Description:`
           alignItems: 'center',
           gap: '8px',
           padding: '8px 12px',
-          background: 'rgba(34, 197, 94, 0.1)',
-          border: '1px solid rgba(34, 197, 94, 0.2)',
+          background: 'rgba(139, 92, 246, 0.1)',
+          border: '1px solid rgba(139, 92, 246, 0.2)',
           borderRadius: '8px',
         }}>
-          <Mic size={14} style={{ color: '#22c55e' }} />
-          <span style={{ fontSize: '12px', color: '#22c55e', fontWeight: '500' }}>
-            Reconnaissance vocale Web Speech API (navigateur)
+          <Sparkles size={14} style={{ color: '#8b5cf6' }} />
+          <span style={{ fontSize: '12px', color: '#8b5cf6', fontWeight: '500' }}>
+            Reconnaissance vocale + IA Claude pour le formatage
           </span>
         </div>
       </div>
@@ -499,12 +517,12 @@ Description:`
             {isGenerating ? (
               <>
                 <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
-                Génération en cours...
+                L'IA rédige...
               </>
             ) : (
               <>
-                <Wand2 size={20} />
-                Générer la description
+                <Sparkles size={20} />
+                Générer avec l'IA
               </>
             )}
           </button>
@@ -520,7 +538,7 @@ Description:`
             }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
                 <h3 style={{ fontSize: '15px', fontWeight: '600', color: 'var(--gold)' }}>
-                  ✨ Description générée
+                  ✨ Description générée par l'IA
                 </h3>
                 <button
                   onClick={() => copyToClipboard(generatedDescription)}
