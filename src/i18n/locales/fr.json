@@ -1,0 +1,337 @@
+{
+  "common": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "create": "Creer",
+    "search": "Rechercher",
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succes",
+    "confirm": "Confirmer",
+    "close": "Fermer",
+    "back": "Retour",
+    "next": "Suivant",
+    "yes": "Oui",
+    "no": "Non",
+    "all": "Tout",
+    "none": "Aucun",
+    "copyLink": "Copier le lien",
+    "linkCopied": "Lien copie dans le presse-papier"
+  },
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "listings": "Mes Annonces",
+    "leads": "Leads",
+    "platforms": "Plateformes",
+    "aiTools": "Outils IA",
+    "settings": "Parametres",
+    "newListing": "Nouvelle Annonce",
+    "logout": "Deconnexion",
+    "upgradeToPro": "Passer a Pro"
+  },
+  "auth": {
+    "login": "Connexion",
+    "signup": "Inscription",
+    "logout": "Deconnexion",
+    "email": "Email",
+    "password": "Mot de passe",
+    "confirmPassword": "Confirmer le mot de passe",
+    "fullName": "Nom complet",
+    "forgotPassword": "Mot de passe oublie ?",
+    "resetPassword": "Reinitialiser le mot de passe",
+    "noAccount": "Pas encore de compte ?",
+    "hasAccount": "Deja un compte ?",
+    "signupSuccess": "Compte cree ! Verifiez votre email pour confirmer.",
+    "loginError": "Email ou mot de passe invalide",
+    "passwordMismatch": "Les mots de passe ne correspondent pas"
+  },
+  "dashboard": {
+    "welcome": "Bonjour, {{name}}",
+    "subtitle": "Voici un apercu de votre activite immobiliere",
+    "activeListings": "Annonces Actives",
+    "totalViews": "Vues Totales",
+    "newLeads": "Nouveaux Leads",
+    "conversionRate": "Taux de Conversion",
+    "recentListings": "Annonces Recentes",
+    "recentLeads": "Leads Recents",
+    "viewAll": "Voir tout",
+    "noListings": "Aucune annonce",
+    "noLeads": "Aucun lead",
+    "createFirst": "Creez votre premiere annonce",
+    "createFirstDesc": "Publiez votre premier bien et diffusez-le sur toutes les plateformes en un clic.",
+    "quickActions": {
+      "createListing": "Creer une annonce",
+      "publishAll": "Publier sur toutes les plateformes",
+      "generateAI": "Generer avec l'IA",
+      "autoDescriptions": "Descriptions automatiques",
+      "viewLeads": "Voir les leads",
+      "newToProcess": "{{count}} nouveaux a traiter"
+    }
+  },
+  "listings": {
+    "title": "Mes Annonces",
+    "subtitle": "Gerez et publiez vos biens",
+    "newListing": "Nouvelle Annonce",
+    "search": "Rechercher une annonce...",
+    "filter": "Filtrer",
+    "gridView": "Vue grille",
+    "listView": "Vue liste",
+    "noListings": "Aucune annonce",
+    "noResults": "Aucun resultat",
+    "createFirst": "Creez votre premiere annonce et publiez-la sur toutes les plateformes.",
+    "tryDifferentFilter": "Essayez de modifier vos filtres de recherche.",
+    "status": {
+      "all": "Toutes",
+      "active": "Active",
+      "draft": "Brouillon",
+      "paused": "En pause",
+      "pending": "En attente"
+    },
+    "actions": {
+      "edit": "Modifier",
+      "viewPublic": "Voir page publique",
+      "copyLink": "Copier le lien",
+      "pause": "Mettre en pause",
+      "activate": "Activer",
+      "publish": "Publier sur plateformes",
+      "delete": "Supprimer"
+    },
+    "deleteConfirm": "Etes-vous sur de vouloir supprimer cette annonce ?",
+    "views": "vues",
+    "leads": "leads"
+  },
+  "createListing": {
+    "title": "Nouvelle Annonce",
+    "editTitle": "Modifier l'Annonce",
+    "subtitle": "Renseignez les details de votre bien",
+    "basicInfo": "Informations de base",
+    "propertyTitle": "Titre",
+    "propertyTitlePlaceholder": "Bel appartement avec vue mer...",
+    "description": "Description",
+    "descriptionPlaceholder": "Decrivez votre bien...",
+    "propertyType": "Type de bien",
+    "types": {
+      "apartment": "Appartement",
+      "house": "Maison",
+      "villa": "Villa",
+      "land": "Terrain",
+      "commercial": "Commercial"
+    },
+    "priceInfo": "Prix & Localisation",
+    "price": "Prix",
+    "priceType": "Type de prix",
+    "priceTypes": {
+      "sale": "Vente",
+      "rent": "Location",
+      "vacation": "Location saisonniere"
+    },
+    "location": "Localisation",
+    "locationPlaceholder": "Ville, quartier...",
+    "details": "Details",
+    "beds": "Chambres",
+    "baths": "Salles de bain",
+    "area": "Surface (m²)",
+    "features": "Equipements",
+    "featuresPlaceholder": "Selectionnez les equipements...",
+    "featuresList": {
+      "pool": "Piscine",
+      "garden": "Jardin",
+      "seaView": "Vue mer",
+      "parking": "Parking",
+      "aircon": "Climatisation",
+      "furnished": "Meuble",
+      "terrace": "Terrasse",
+      "security": "Securite",
+      "elevator": "Ascenseur",
+      "storage": "Rangement"
+    },
+    "images": "Photos",
+    "dragDrop": "Glissez-deposez des images ici ou cliquez pour parcourir",
+    "maxSize": "Max 5 Mo par image",
+    "mainImage": "PRINCIPALE",
+    "platforms": "Plateformes",
+    "selectPlatforms": "Selectionnez les plateformes de publication",
+    "status": "Statut",
+    "saveDraft": "Enregistrer en brouillon",
+    "publish": "Publier",
+    "saving": "Enregistrement...",
+    "saved": "Annonce enregistree !",
+    "generateWithAI": "Generer avec l'IA"
+  },
+  "leads": {
+    "title": "Leads",
+    "subtitle": "Gerez vos contacts prospects",
+    "search": "Rechercher un lead...",
+    "noLeads": "Aucun lead",
+    "noLeadsDesc": "Les leads apparaitront ici quand des prospects vous contacteront",
+    "noResults": "Aucun lead trouve",
+    "status": {
+      "all": "Tous",
+      "new": "Nouveau",
+      "contacted": "Contacte",
+      "qualified": "Qualifie",
+      "visited": "Visite",
+      "lost": "Perdu"
+    },
+    "source": "Source",
+    "message": "Message",
+    "noMessage": "Aucun message",
+    "actions": {
+      "markContacted": "Marquer comme contacte",
+      "markQualified": "Marquer comme qualifie",
+      "delete": "Supprimer"
+    },
+    "deleteConfirm": "Etes-vous sur de vouloir supprimer ce lead ?"
+  },
+  "platforms": {
+    "title": "Plateformes",
+    "subtitle": "Connectez vos comptes pour publier automatiquement vos annonces",
+    "connected": "Connecte",
+    "notConnected": "Non connecte",
+    "connect": "Connecter",
+    "disconnect": "Deconnecter",
+    "markActive": "Marquer actif",
+    "deactivate": "Desactiver",
+    "activeListings": "{{count}} annonce(s) active(s)",
+    "autoConnect": "Connexion automatique",
+    "autoConnectDesc": "Ces plateformes supportent la publication automatique via API",
+    "manual": "Portails immobiliers",
+    "manualDesc": "Ces plateformes necessitent une publication manuelle ou un partenariat commercial",
+    "stats": {
+      "connected": "Plateformes connectees",
+      "publications": "Publications actives",
+      "available": "Plateformes disponibles"
+    }
+  },
+  "aiTools": {
+    "title": "Outils IA",
+    "subtitle": "Generez des descriptions professionnelles pour vos annonces",
+    "generateDescription": "Generer une description",
+    "propertyDetails": "Details du bien",
+    "tone": "Ton",
+    "tones": {
+      "professional": "Professionnel",
+      "luxury": "Luxe",
+      "friendly": "Convivial"
+    },
+    "generate": "Generer",
+    "generating": "Generation en cours...",
+    "result": "Description generee",
+    "copy": "Copier",
+    "regenerate": "Regenerer",
+    "copied": "Copie !",
+    "useInListing": "Utiliser dans l'annonce"
+  },
+  "settings": {
+    "title": "Parametres",
+    "subtitle": "Gerez votre compte et vos preferences",
+    "tabs": {
+      "profile": "Profil",
+      "security": "Securite",
+      "notifications": "Notifications",
+      "billing": "Facturation"
+    },
+    "profile": {
+      "title": "Informations personnelles",
+      "fullName": "Nom complet",
+      "email": "Email",
+      "phone": "Telephone",
+      "company": "Societe",
+      "website": "Site web",
+      "save": "Enregistrer",
+      "saving": "Enregistrement...",
+      "saved": "Profil mis a jour"
+    },
+    "security": {
+      "title": "Changer le mot de passe",
+      "newPassword": "Nouveau mot de passe",
+      "confirmPassword": "Confirmer le mot de passe",
+      "update": "Mettre a jour",
+      "updating": "Mise a jour...",
+      "updated": "Mot de passe mis a jour"
+    },
+    "notifications": {
+      "title": "Preferences de notification",
+      "newLead": "Nouveau lead",
+      "newLeadDesc": "Recevez une notification quand un prospect vous contacte",
+      "weeklyReport": "Rapport hebdomadaire",
+      "weeklyReportDesc": "Resume de votre activite chaque semaine",
+      "productUpdates": "Mises a jour produit",
+      "productUpdatesDesc": "Nouvelles fonctionnalites et ameliorations"
+    },
+    "billing": {
+      "title": "Votre abonnement",
+      "currentPlan": "Plan actuel",
+      "noPlan": "Aucun abonnement actif",
+      "noPlanDesc": "Choisissez un plan ci-dessous pour debloquer toutes les fonctionnalites",
+      "renewalDate": "Renouvellement le {{date}}",
+      "manageSub": "Gerer mon abonnement",
+      "choosePlan": "Choisir un plan",
+      "changePlan": "Changer de plan",
+      "currentPlanBadge": "ACTUEL",
+      "popularBadge": "POPULAIRE",
+      "monthly": "/mois",
+      "choosePlanBtn": "Choisir ce plan"
+    }
+  },
+  "publicListing": {
+    "notFound": "Annonce non disponible",
+    "notFoundDesc": "Cette annonce n'existe pas ou n'est plus active.",
+    "backHome": "Retour a l'accueil",
+    "interested": "Interesse par ce bien ?",
+    "contactForm": "Remplissez le formulaire et nous vous recontacterons rapidement.",
+    "fullName": "Nom complet",
+    "email": "Email",
+    "phone": "Telephone",
+    "message": "Message",
+    "messagePlaceholder": "Je suis interesse par ce bien...",
+    "send": "Envoyer ma demande",
+    "sending": "Envoi en cours...",
+    "sent": "Message envoye !",
+    "sentDesc": "Nous avons bien recu votre demande et reviendrons vers vous tres rapidement.",
+    "formDisclaimer": "En soumettant ce formulaire, vous acceptez d'etre contacte concernant ce bien.",
+    "bedrooms": "Chambres",
+    "bathrooms": "Salles de bain",
+    "area": "Surface",
+    "description": "Description",
+    "features": "Equipements"
+  },
+  "landing": {
+    "hero": {
+      "title": "Automatisez votre activite immobiliere",
+      "subtitle": "Publiez sur toutes les plateformes en un clic. Generez des descriptions avec l'IA. Convertissez plus de leads.",
+      "cta": "Essai Gratuit",
+      "demo": "Voir la demo"
+    },
+    "pricing": {
+      "title": "Tarifs simples et transparents",
+      "subtitle": "Choisissez le plan qui vous convient",
+      "monthly": "Mensuel",
+      "yearly": "Annuel",
+      "starter": {
+        "name": "Starter",
+        "desc": "Ideal pour debuter",
+        "cta": "Commencer"
+      },
+      "pro": {
+        "name": "Pro",
+        "desc": "Le choix des top agents",
+        "cta": "Essai Gratuit 14 jours"
+      },
+      "agency": {
+        "name": "Agence",
+        "desc": "Pour les equipes",
+        "cta": "Contactez-nous"
+      }
+    }
+  },
+  "errors": {
+    "generic": "Une erreur est survenue",
+    "network": "Erreur reseau. Veuillez reessayer.",
+    "unauthorized": "Vous devez etre connecte",
+    "notFound": "Non trouve",
+    "validation": "Veuillez verifier les champs du formulaire"
+  }
+}

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
+import LanguageSwitcher from './LanguageSwitcher';
 import {
   LayoutDashboard,
   Building2,
@@ -19,6 +21,7 @@ function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { t } = useTranslation();
   const [newLeadsCount, setNewLeadsCount] = useState(0);
 
   const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Utilisateur';
@@ -62,12 +65,12 @@ function Sidebar() {
   };
 
   const navItems = [
-    { path: '/dashboard', icon: LayoutDashboard, label: 'Tableau de bord', hasSubmenu: true },
-    { path: '/listings', icon: Building2, label: 'Mes Annonces' },
-    { path: '/leads', icon: Users, label: 'Leads', badge: newLeadsCount > 0 ? newLeadsCount : null },
-    { path: '/accounts', icon: Link2, label: 'Plateformes' },
-    { path: '/ai-tools', icon: Sparkles, label: 'Outils IA' },
-    { path: '/settings', icon: Settings, label: 'Paramètres' },
+    { path: '/dashboard', icon: LayoutDashboard, label: t('nav.dashboard'), hasSubmenu: true },
+    { path: '/listings', icon: Building2, label: t('nav.listings') },
+    { path: '/leads', icon: Users, label: t('nav.leads'), badge: newLeadsCount > 0 ? newLeadsCount : null },
+    { path: '/accounts', icon: Link2, label: t('nav.platforms') },
+    { path: '/ai-tools', icon: Sparkles, label: t('nav.aiTools') },
+    { path: '/settings', icon: Settings, label: t('nav.settings') },
   ];
 
   return (
@@ -146,7 +149,7 @@ function Sidebar() {
           }}
         >
           <Plus size={18} />
-          Nouvelle Annonce
+          {t('nav.newListing')}
         </Link>
       </div>
 
@@ -241,9 +244,14 @@ function Sidebar() {
             fontSize: '13px',
             cursor: 'pointer',
           }}>
-            Passer à Pro
+            {t('nav.upgradeToPro')}
           </button>
         </div>
+      </div>
+
+      {/* Language Switcher */}
+      <div style={{ padding: '0 16px 8px' }}>
+        <LanguageSwitcher />
       </div>
 
       {/* User Profile */}
