@@ -224,6 +224,10 @@ const CSXLanding = () => {
           padding: 0;
           box-sizing: border-box;
         }
+
+        html {
+          scroll-behavior: smooth;
+        }
         
         @keyframes float {
           0%, 100% { transform: translateY(0px); }
@@ -570,10 +574,10 @@ const CSXLanding = () => {
           alignItems: 'center',
           gap: '40px',
         }}>
-          <span className="nav-link">Fonctionnalités</span>
-          <span className="nav-link">Tarifs</span>
-          <span className="nav-link">Témoignages</span>
-          <Link to="/login" className="nav-link">Connexion</Link>
+          <a href="#features" className="nav-link" style={{ textDecoration: 'none' }}>Fonctionnalités</a>
+          <a href="#pricing" className="nav-link" style={{ textDecoration: 'none' }}>Tarifs</a>
+          <a href="#testimonials" className="nav-link" style={{ textDecoration: 'none' }}>Témoignages</a>
+          <Link to="/login" className="nav-link" style={{ textDecoration: 'none' }}>Connexion</Link>
           <Link to="/signup" className="cta-button" style={{ padding: '12px 24px', fontSize: '13px', textDecoration: 'none' }}>
             Essai Gratuit
             <ArrowRight size={16} />
@@ -637,10 +641,10 @@ const CSXLanding = () => {
                 Démarrer Gratuitement
                 <ArrowRight size={18} />
               </Link>
-              <button className="cta-button cta-secondary">
+              <a href="#features" className="cta-button cta-secondary" style={{ textDecoration: 'none' }}>
                 <Play size={18} fill="currentColor" />
                 Voir la Démo
-              </button>
+              </a>
             </div>
             
             <div className="animate-in delay-4" style={{
@@ -796,10 +800,11 @@ const CSXLanding = () => {
       </section>
 
       {/* Features Section */}
-      <section style={{
+      <section id="features" style={{
         padding: '120px 48px',
         position: 'relative',
         zIndex: 1,
+        scrollMarginTop: '80px',
       }}>
         <div style={{
           maxWidth: '1300px',
@@ -1032,10 +1037,11 @@ const CSXLanding = () => {
       </section>
 
       {/* Pricing Section */}
-      <section style={{
+      <section id="pricing" style={{
         padding: '120px 48px',
         position: 'relative',
         zIndex: 1,
+        scrollMarginTop: '80px',
       }}>
         <div style={{
           maxWidth: '1200px',
@@ -1170,11 +1176,12 @@ const CSXLanding = () => {
       </section>
 
       {/* Testimonials */}
-      <section style={{
+      <section id="testimonials" style={{
         padding: '120px 48px',
         background: 'rgba(0, 0, 0, 0.3)',
         position: 'relative',
         zIndex: 1,
+        scrollMarginTop: '80px',
       }}>
         <div style={{
           maxWidth: '1200px',
@@ -1277,9 +1284,9 @@ const CSXLanding = () => {
               Essai Gratuit 14 Jours
               <ArrowRight size={20} />
             </Link>
-            <button className="cta-button cta-secondary" style={{ fontSize: '16px', padding: '18px 38px' }}>
+            <a href="mailto:contact@csx-immobilier.com?subject=Demande de demo" className="cta-button cta-secondary" style={{ fontSize: '16px', padding: '18px 38px', textDecoration: 'none' }}>
               Réserver une Démo
-            </button>
+            </a>
           </div>
           <div style={{
             display: 'flex',
@@ -1360,30 +1367,59 @@ const CSXLanding = () => {
                 display: 'flex',
                 gap: '12px',
               }}>
-                {[PlatformLogos.Facebook, PlatformLogos.Instagram].map((Logo, index) => (
-                  <div key={index} style={{
-                    width: '40px',
-                    height: '40px',
-                    background: 'rgba(255, 255, 255, 0.05)',
-                    borderRadius: '10px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    color: 'rgba(255, 255, 255, 0.5)',
-                  }}>
-                    <Logo />
-                  </div>
+                {[
+                  { Logo: PlatformLogos.Facebook, href: 'https://facebook.com' },
+                  { Logo: PlatformLogos.Instagram, href: 'https://instagram.com' }
+                ].map((social, index) => (
+                  <a 
+                    key={index} 
+                    href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      width: '40px',
+                      height: '40px',
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      borderRadius: '10px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      color: 'rgba(255, 255, 255, 0.5)',
+                      textDecoration: 'none',
+                    }}>
+                    <social.Logo />
+                  </a>
                 ))}
               </div>
             </div>
             
             {[
-              { title: 'Produit', links: ['Fonctionnalités', 'Tarifs', 'Intégrations', 'API'] },
-              { title: 'Ressources', links: ['Documentation', 'Blog', 'Tutoriels', 'Webinaires'] },
-              { title: 'Entreprise', links: ['À propos', 'Carrières', 'Presse', 'Contact'] },
-              { title: 'Légal', links: ['CGU', 'Confidentialité', 'RGPD', 'Mentions légales'] },
+              { title: 'Produit', links: [
+                { name: 'Fonctionnalités', href: '#features' },
+                { name: 'Tarifs', href: '#pricing' },
+                { name: 'Intégrations', href: '#features' },
+                { name: 'API', href: '#features' }
+              ]},
+              { title: 'Ressources', links: [
+                { name: 'Documentation', href: '#' },
+                { name: 'Blog', href: '#' },
+                { name: 'Tutoriels', href: '#' },
+                { name: 'Webinaires', href: '#' }
+              ]},
+              { title: 'Entreprise', links: [
+                { name: 'À propos', href: '#' },
+                { name: 'Carrières', href: '#' },
+                { name: 'Presse', href: '#' },
+                { name: 'Contact', href: '#' }
+              ]},
+              { title: 'Légal', links: [
+                { name: 'CGU', href: '#' },
+                { name: 'Confidentialité', href: '#' },
+                { name: 'RGPD', href: '#' },
+                { name: 'Mentions légales', href: '#' }
+              ]},
             ].map((section, index) => (
               <div key={index}>
                 <h4 style={{
@@ -1395,7 +1431,7 @@ const CSXLanding = () => {
                 <ul style={{ listStyle: 'none' }}>
                   {section.links.map((link, idx) => (
                     <li key={idx} style={{ marginBottom: '14px' }}>
-                      <span className="footer-link">{link}</span>
+                      <a href={link.href} className="footer-link" style={{ textDecoration: 'none' }}>{link.name}</a>
                     </li>
                   ))}
                 </ul>
