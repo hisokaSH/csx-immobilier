@@ -1,46 +1,12 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { 
-  Building2, Sparkles, Clock, MessageSquare, BarChart3, 
-  Zap, Shield, Check, ArrowRight, ChevronDown, Play,
-  Mail, Target, CheckCircle2, ArrowUpRight, Menu, X
+  Building2, Bell, PenLine, LayoutDashboard, Zap,
+  ArrowRight, ChevronDown, Play, CheckCircle2, Menu, X,
+  Mail, MessageSquare, Clock, Users, Quote
 } from 'lucide-react';
-
-// Animated counter hook
-function useCounter(end: number, duration: number = 2000) {
-  const [count, setCount] = useState(0);
-  const [hasStarted, setHasStarted] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !hasStarted) {
-          setHasStarted(true);
-        }
-      },
-      { threshold: 0.5 }
-    );
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, [hasStarted]);
-
-  useEffect(() => {
-    if (!hasStarted) return;
-    let startTime: number;
-    const animate = (currentTime: number) => {
-      if (!startTime) startTime = currentTime;
-      const progress = Math.min((currentTime - startTime) / duration, 1);
-      setCount(Math.floor(progress * end));
-      if (progress < 1) requestAnimationFrame(animate);
-    };
-    requestAnimationFrame(animate);
-  }, [end, duration, hasStarted]);
-
-  return { count, ref };
-}
 
 export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -52,53 +18,37 @@ export default function LandingPage() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const stats = [
-    { value: 15, suffix: '', label: 'Deal stages covered' },
-    { value: 10, suffix: 's', label: 'To generate a message' },
-    { value: 5, suffix: 'x', label: 'Faster follow-ups' },
-  ];
-
   return (
-    <div className="min-h-screen bg-[#0A0A0F] text-white overflow-hidden">
-      {/* Animated background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '4s' }} />
-        <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-purple-600/20 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '6s' }} />
-        <div className="absolute top-1/2 left-1/2 w-[600px] h-[600px] bg-cyan-600/10 rounded-full blur-[150px] animate-pulse" style={{ animationDuration: '8s' }} />
-      </div>
-
+    <div className="min-h-screen bg-white text-slate-900">
       {/* Navigation */}
       <nav className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
-        scrolled ? 'bg-[#0A0A0F]/80 backdrop-blur-xl border-b border-white/5' : ''
+        scrolled ? 'bg-white/90 backdrop-blur-lg shadow-sm' : 'bg-transparent'
       }`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl blur-sm opacity-50" />
-                <div className="relative w-10 h-10 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center">
-                  <Building2 className="w-5 h-5 text-white" />
-                </div>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="flex items-center justify-between h-16 lg:h-20">
+            <div className="flex items-center gap-2">
+              <div className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center">
+                <Building2 className="w-5 h-5 text-white" />
               </div>
-              <span className="font-bold text-xl">CSX Estate</span>
+              <span className="font-bold text-lg text-slate-900">CSX Estate</span>
             </div>
             
             <div className="hidden md:flex items-center gap-8">
-              <a href="#features" className="text-sm text-white/60 hover:text-white transition-colors">Features</a>
-              <a href="#demo" className="text-sm text-white/60 hover:text-white transition-colors">Demo</a>
-              <a href="#pricing" className="text-sm text-white/60 hover:text-white transition-colors">Pricing</a>
-              <a href="#faq" className="text-sm text-white/60 hover:text-white transition-colors">FAQ</a>
+              <a href="#probleme" className="text-sm text-slate-600 hover:text-slate-900 transition-colors">Problème</a>
+              <a href="#fonctionnalites" className="text-sm text-slate-600 hover:text-slate-900 transition-colors">Fonctionnalités</a>
+              <a href="#tarifs" className="text-sm text-slate-600 hover:text-slate-900 transition-colors">Tarifs</a>
+              <a href="#faq" className="text-sm text-slate-600 hover:text-slate-900 transition-colors">FAQ</a>
             </div>
 
-            <div className="hidden md:flex items-center gap-4">
-              <Link href="/login" className="text-sm text-white/60 hover:text-white transition-colors">
-                Sign In
+            <div className="hidden md:flex items-center gap-3">
+              <Link href="/login" className="text-sm text-slate-600 hover:text-slate-900 transition-colors px-4 py-2">
+                Connexion
               </Link>
               <Link 
                 href="/login" 
-                className="group relative px-5 py-2.5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-sm font-medium rounded-full overflow-hidden transition-all hover:shadow-lg hover:shadow-blue-500/25"
+                className="px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
               >
-                <span className="relative z-10">Start Free Trial</span>
+                Essai gratuit
               </Link>
             </div>
 
@@ -113,14 +63,14 @@ export default function LandingPage() {
 
         {/* Mobile menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden bg-[#0A0A0F]/95 backdrop-blur-xl border-t border-white/5">
-            <div className="px-4 py-6 space-y-4">
-              <a href="#features" className="block text-white/60 hover:text-white">Features</a>
-              <a href="#demo" className="block text-white/60 hover:text-white">Demo</a>
-              <a href="#pricing" className="block text-white/60 hover:text-white">Pricing</a>
-              <a href="#faq" className="block text-white/60 hover:text-white">FAQ</a>
-              <Link href="/login" className="block w-full py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-center rounded-full font-medium">
-                Start Free Trial
+          <div className="md:hidden bg-white border-t">
+            <div className="px-4 py-4 space-y-3">
+              <a href="#probleme" className="block text-slate-600 hover:text-slate-900 py-2">Problème</a>
+              <a href="#fonctionnalites" className="block text-slate-600 hover:text-slate-900 py-2">Fonctionnalités</a>
+              <a href="#tarifs" className="block text-slate-600 hover:text-slate-900 py-2">Tarifs</a>
+              <a href="#faq" className="block text-slate-600 hover:text-slate-900 py-2">FAQ</a>
+              <Link href="/login" className="block w-full py-3 bg-blue-600 text-white text-center rounded-lg font-medium">
+                Essai gratuit 7 jours
               </Link>
             </div>
           </div>
@@ -128,322 +78,290 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center max-w-4xl mx-auto">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full mb-8">
-              <Sparkles className="w-4 h-4 text-cyan-400" />
-              <span className="text-sm text-white/80">AI-Powered CRM for Real Estate</span>
-              <ArrowUpRight className="w-4 h-4 text-white/40" />
-            </div>
-
+      <section className="pt-28 lg:pt-36 pb-16 lg:pb-24 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="max-w-3xl mx-auto text-center">
             {/* Headline */}
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight mb-8">
-              Stop losing deals to{' '}
-              <span className="relative">
-                <span className="relative z-10 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                  forgotten follow-ups
-                </span>
-                <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 300 12" fill="none">
-                  <path d="M2 10C50 4 100 2 150 6C200 10 250 4 298 8" stroke="url(#gradient)" strokeWidth="3" strokeLinecap="round"/>
-                  <defs>
-                    <linearGradient id="gradient" x1="0" y1="0" x2="300" y2="0">
-                      <stop stopColor="#3B82F6"/>
-                      <stop offset="0.5" stopColor="#06B6D4"/>
-                      <stop offset="1" stopColor="#3B82F6"/>
-                    </linearGradient>
-                  </defs>
-                </svg>
-              </span>
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight text-slate-900 mb-6">
+              Signez plus de mandats.{' '}
+              <span className="text-blue-600">N&apos;oubliez plus aucun suivi.</span>
             </h1>
 
             {/* Subheadline */}
-            <p className="text-xl text-white/60 max-w-2xl mx-auto mb-10">
-              The average agent loses 3-5 deals per year from poor follow-up timing. 
-              Our AI tells you who to contact and writes the message for you.
+            <p className="text-lg lg:text-xl text-slate-600 mb-8 max-w-2xl mx-auto leading-relaxed">
+              CSX Estate est l&apos;assistant IA des agents immobiliers qui vous dit qui relancer aujourd&apos;hui 
+              et rédige le message pour vous — pour que plus aucun dossier ne meure à cause du silence.
             </p>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
               <Link 
                 href="/login" 
-                className="group relative w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-semibold rounded-full overflow-hidden transition-all hover:shadow-xl hover:shadow-blue-500/25 hover:scale-105"
+                className="w-full sm:w-auto px-8 py-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-600/25"
               >
-                <span className="relative z-10 flex items-center justify-center gap-2">
-                  Start 7-Day Free Trial
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </span>
+                Essai gratuit 7 jours
+                <ArrowRight className="w-5 h-5" />
               </Link>
               <a 
                 href="#demo" 
-                className="group w-full sm:w-auto px-8 py-4 bg-white/5 border border-white/10 text-white font-semibold rounded-full hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-8 py-4 bg-slate-100 text-slate-700 font-semibold rounded-lg hover:bg-slate-200 transition-all flex items-center justify-center gap-2"
               >
                 <Play className="w-5 h-5" />
-                Watch Demo
+                Voir la démo (30s)
               </a>
             </div>
 
             {/* Trust indicators */}
-            <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-white/40">
+            <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-slate-500">
               <span className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                No credit card required
+                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                Sans carte bancaire
               </span>
               <span className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                Cancel anytime
+                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                Annulation à tout moment
               </span>
               <span className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                GDPR compliant
+                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                10 minutes pour démarrer
               </span>
             </div>
           </div>
 
-          {/* Hero Image/App Preview */}
-          <div className="relative mt-20">
-            {/* Glow effect */}
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-cyan-500/20 to-purple-500/20 rounded-3xl blur-3xl" />
-            
-            {/* App preview container */}
-            <div className="relative bg-gradient-to-b from-white/10 to-white/5 rounded-3xl border border-white/10 p-2 backdrop-blur-sm">
-              <div className="bg-[#12121A] rounded-2xl overflow-hidden">
+          {/* App Preview */}
+          <div className="mt-16 lg:mt-20">
+            <div className="relative max-w-4xl mx-auto">
+              {/* Shadow/glow */}
+              <div className="absolute inset-0 bg-gradient-to-b from-blue-100 to-transparent rounded-2xl blur-3xl opacity-50" />
+              
+              {/* Browser mockup */}
+              <div className="relative bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
                 {/* Browser bar */}
-                <div className="flex items-center gap-2 px-4 py-3 bg-[#1A1A24] border-b border-white/5">
+                <div className="flex items-center gap-2 px-4 py-3 bg-slate-50 border-b border-slate-200">
                   <div className="flex gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-red-500/80" />
-                    <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
-                    <div className="w-3 h-3 rounded-full bg-green-500/80" />
+                    <div className="w-3 h-3 rounded-full bg-red-400" />
+                    <div className="w-3 h-3 rounded-full bg-amber-400" />
+                    <div className="w-3 h-3 rounded-full bg-emerald-400" />
                   </div>
                   <div className="flex-1 mx-4">
-                    <div className="w-full max-w-md mx-auto px-4 py-1.5 bg-white/5 rounded-lg text-xs text-white/40 text-center">
+                    <div className="w-full max-w-xs mx-auto px-4 py-1.5 bg-white rounded-md text-xs text-slate-400 text-center border border-slate-200">
                       app.csx-estate.com
                     </div>
                   </div>
                 </div>
                 
-                {/* App screenshot */}
-                <div className="relative aspect-[16/9] bg-gradient-to-br from-[#0F172A] to-[#1E293B]">
-                  {/* Dashboard mockup */}
-                  <div className="absolute inset-0 p-6 lg:p-8">
-                    {/* Header */}
-                    <div className="mb-6">
-                      <h3 className="text-xl lg:text-2xl font-bold text-white mb-1">Good morning, Agent</h3>
-                      <p className="text-white/50 text-sm lg:text-base">You have 6 follow-ups that need attention</p>
+                {/* App content */}
+                <div className="p-6 lg:p-8 bg-slate-50">
+                  {/* Header */}
+                  <div className="mb-6">
+                    <h3 className="text-xl lg:text-2xl font-bold text-slate-900 mb-1">Bonjour, Agent 👋</h3>
+                    <p className="text-slate-500">Vous avez 6 relances à faire aujourd&apos;hui</p>
+                  </div>
+                  
+                  {/* Stats */}
+                  <div className="grid grid-cols-3 gap-3 lg:gap-4 mb-6">
+                    <div className="bg-white rounded-xl p-4 border border-slate-200">
+                      <div className="text-2xl lg:text-3xl font-bold text-slate-900">12</div>
+                      <div className="text-sm text-slate-500">Dossiers actifs</div>
                     </div>
-                    
-                    {/* Stats row */}
-                    <div className="grid grid-cols-3 gap-3 lg:gap-4 mb-6 lg:mb-8">
-                      <div className="bg-white/5 rounded-xl p-3 lg:p-4 border border-white/10">
-                        <div className="text-2xl lg:text-3xl font-bold text-white">12</div>
-                        <div className="text-xs lg:text-sm text-white/50">Active Deals</div>
-                      </div>
-                      <div className="bg-white/5 rounded-xl p-3 lg:p-4 border border-white/10">
-                        <div className="text-2xl lg:text-3xl font-bold text-red-400">3</div>
-                        <div className="text-xs lg:text-sm text-white/50">Overdue</div>
-                      </div>
-                      <div className="bg-white/5 rounded-xl p-3 lg:p-4 border border-white/10">
-                        <div className="text-2xl lg:text-3xl font-bold text-emerald-400">24</div>
-                        <div className="text-xs lg:text-sm text-white/50">Messages Sent</div>
-                      </div>
+                    <div className="bg-white rounded-xl p-4 border border-slate-200">
+                      <div className="text-2xl lg:text-3xl font-bold text-red-500">3</div>
+                      <div className="text-sm text-slate-500">En retard</div>
                     </div>
+                    <div className="bg-white rounded-xl p-4 border border-slate-200">
+                      <div className="text-2xl lg:text-3xl font-bold text-emerald-500">24</div>
+                      <div className="text-sm text-slate-500">Messages envoyés</div>
+                    </div>
+                  </div>
 
-                    {/* Deal cards */}
-                    <div className="space-y-2 lg:space-y-3">
-                      <div className="flex items-center gap-3 lg:gap-4 bg-red-500/10 border border-red-500/20 rounded-xl p-3 lg:p-4">
-                        <div className="w-8 h-8 lg:w-10 lg:h-10 bg-red-500/20 rounded-full flex items-center justify-center text-red-400 text-sm lg:text-base font-medium">M</div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-white text-sm lg:text-base truncate">Marie Dupont</div>
-                          <div className="text-xs lg:text-sm text-white/50 truncate">15 Rue de la Paix, Paris</div>
-                        </div>
-                        <span className="px-2 lg:px-3 py-1 bg-red-500/20 text-red-400 text-xs lg:text-sm rounded-full whitespace-nowrap">3d overdue</span>
+                  {/* Deal cards */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-4 bg-red-50 border border-red-100 rounded-xl p-4">
+                      <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center text-red-600 font-medium">MD</div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-slate-900">Marie Dupont</div>
+                        <div className="text-sm text-slate-500 truncate">15 Rue de la Paix, Paris</div>
                       </div>
-                      <div className="flex items-center gap-3 lg:gap-4 bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 lg:p-4">
-                        <div className="w-8 h-8 lg:w-10 lg:h-10 bg-amber-500/20 rounded-full flex items-center justify-center text-amber-400 text-sm lg:text-base font-medium">L</div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-white text-sm lg:text-base truncate">Lucas Moreau</div>
-                          <div className="text-xs lg:text-sm text-white/50 truncate">23 Rue du Commerce, Paris</div>
-                        </div>
-                        <span className="px-2 lg:px-3 py-1 bg-amber-500/20 text-amber-400 text-xs lg:text-sm rounded-full whitespace-nowrap">Due today</span>
+                      <span className="px-3 py-1 bg-red-100 text-red-600 text-sm font-medium rounded-full">3j en retard</span>
+                    </div>
+                    <div className="flex items-center gap-4 bg-amber-50 border border-amber-100 rounded-xl p-4">
+                      <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center text-amber-600 font-medium">LM</div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-slate-900">Lucas Moreau</div>
+                        <div className="text-sm text-slate-500 truncate">23 Rue du Commerce, Paris</div>
                       </div>
-                      <div className="flex items-center gap-3 lg:gap-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 lg:p-4">
-                        <div className="w-8 h-8 lg:w-10 lg:h-10 bg-emerald-500/20 rounded-full flex items-center justify-center text-emerald-400 text-sm lg:text-base font-medium">P</div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-white text-sm lg:text-base truncate">Pierre Bonnet</div>
-                          <div className="text-xs lg:text-sm text-white/50 truncate">91 Avenue Foch, Paris</div>
-                        </div>
-                        <span className="px-2 lg:px-3 py-1 bg-emerald-500/20 text-emerald-400 text-xs lg:text-sm rounded-full whitespace-nowrap">1d left</span>
+                      <span className="px-3 py-1 bg-amber-100 text-amber-600 text-sm font-medium rounded-full">Aujourd&apos;hui</span>
+                    </div>
+                    <div className="flex items-center gap-4 bg-emerald-50 border border-emerald-100 rounded-xl p-4">
+                      <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 font-medium">PB</div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-slate-900">Pierre Bonnet</div>
+                        <div className="text-sm text-slate-500 truncate">91 Avenue Foch, Paris</div>
                       </div>
+                      <span className="px-3 py-1 bg-emerald-100 text-emerald-600 text-sm font-medium rounded-full">Demain</span>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-
-            {/* Floating elements */}
-            <div className="absolute -top-4 -right-4 lg:-top-6 lg:-right-6 px-3 lg:px-4 py-2 lg:py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-xl lg:rounded-2xl shadow-xl shadow-emerald-500/25 animate-bounce" style={{ animationDuration: '3s' }}>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
-                <span className="text-xs lg:text-sm font-medium text-white">Message sent!</span>
-              </div>
-            </div>
-
-            <div className="absolute -bottom-2 -left-2 lg:-bottom-4 lg:-left-4 px-3 lg:px-4 py-2 lg:py-3 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl lg:rounded-2xl shadow-xl shadow-blue-500/25 animate-bounce" style={{ animationDuration: '4s', animationDelay: '1s' }}>
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
-                <span className="text-xs lg:text-sm font-medium text-white">AI generated in 3s</span>
-              </div>
-            </div>
           </div>
         </div>
       </section>
 
-      {/* Logos/Trust Section */}
-      <section className="py-16 px-4 border-y border-white/5">
-        <div className="max-w-7xl mx-auto">
-          <p className="text-center text-sm text-white/40 mb-8">Built for professionals who value their time</p>
-          <div className="flex flex-wrap items-center justify-center gap-8 lg:gap-12 opacity-40">
-            <div className="text-xl lg:text-2xl font-bold">FNAIM</div>
-            <div className="text-xl lg:text-2xl font-bold">Century 21</div>
-            <div className="text-xl lg:text-2xl font-bold">ERA</div>
-            <div className="text-xl lg:text-2xl font-bold">ORPI</div>
-            <div className="text-xl lg:text-2xl font-bold hidden md:block">Laforêt</div>
-          </div>
+      {/* Trust Strip */}
+      <section className="py-8 bg-slate-50 border-y border-slate-200">
+        <div className="max-w-6xl mx-auto px-4">
+          <p className="text-center text-slate-500">
+            Utilisé par des agents immobiliers qui ne veulent plus perdre de ventes à cause d&apos;un suivi oublié.
+          </p>
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-24 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-3 gap-8">
-            {stats.map((stat, i) => {
-              const { count, ref } = useCounter(stat.value);
-              return (
-                <div key={i} ref={ref} className="text-center">
-                  <div className="text-5xl lg:text-6xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent mb-2">
-                    {count}{stat.suffix}
-                  </div>
-                  <div className="text-white/60">{stat.label}</div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Problem/Solution Section */}
-      <section className="py-24 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start">
-            <div>
-              <h2 className="text-3xl lg:text-4xl font-bold mb-6">
-                The real cost of{' '}
-                <span className="text-red-400">forgotten follow-ups</span>
-              </h2>
-              <div className="space-y-4">
-                {[
-                  { icon: '😰', text: 'Leads go cold because you forgot to call back' },
-                  { icon: '⏰', text: 'You spend 30+ minutes writing the same emails' },
-                  { icon: '📊', text: 'Deals slip through the cracks in spreadsheets' },
-                  { icon: '❓', text: 'No idea who needs attention today' },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-4 p-4 bg-red-500/5 border border-red-500/10 rounded-xl">
-                    <span className="text-2xl">{item.icon}</span>
-                    <span className="text-white/80">{item.text}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div>
-              <h2 className="text-3xl lg:text-4xl font-bold mb-6">
-                With CSX Estate,{' '}
-                <span className="text-emerald-400">you stay ahead</span>
-              </h2>
-              <div className="space-y-4">
-                {[
-                  { icon: '✅', text: 'Never miss a follow-up with smart reminders' },
-                  { icon: '⚡', text: 'AI writes personalized messages in seconds' },
-                  { icon: '📈', text: 'Visual pipeline shows every deal at a glance' },
-                  { icon: '📧', text: 'Daily email tells you exactly what to do' },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-4 p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-xl">
-                    <span className="text-2xl">{item.icon}</span>
-                    <span className="text-white/80">{item.text}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section id="features" className="py-24 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full mb-6">
-              <Zap className="w-4 h-4 text-cyan-400" />
-              <span className="text-sm text-white/80">Powerful Features</span>
-            </div>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
-              Everything you need to{' '}
-              <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">close more deals</span>
+      {/* Problem Section */}
+      <section id="probleme" className="py-20 lg:py-28 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-4">
+              Les ventes n&apos;échouent pas à cause du prix.<br />
+              <span className="text-red-500">Elles échouent à cause du silence.</span>
             </h2>
-            <p className="text-lg lg:text-xl text-white/60 max-w-2xl mx-auto">
-              Built specifically for real estate agents. No bloated features, just what actually helps you close.
-            </p>
           </div>
 
-          {/* Feature Cards */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="bg-slate-50 rounded-2xl p-8 lg:p-10 mb-12">
+            <p className="text-lg text-slate-600 mb-6 font-medium">Tous les agents connaissent cette situation :</p>
+            <div className="space-y-4">
+              {[
+                'Vous vouliez relancer… mais la journée a débordé',
+                'Le client a oublié d\'envoyer ses documents',
+                'La banque n\'a pas répondu',
+                'Le vendeur a trop attendu',
+                'L\'acheteur a perdu confiance',
+              ].map((item, i) => (
+                <div key={i} className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <X className="w-3.5 h-3.5 text-red-500" />
+                  </div>
+                  <span className="text-slate-700">{item}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-8 pt-6 border-t border-slate-200">
+              <p className="text-slate-900 font-medium text-lg">
+                Et soudain… le dossier tombe à l&apos;eau.
+              </p>
+              <p className="text-slate-500 mt-2">
+                Pas parce que vous étiez mauvais. Mais parce que personne n&apos;a relancé au bon moment.
+              </p>
+            </div>
+          </div>
+
+          {/* Solution */}
+          <div className="bg-blue-600 rounded-2xl p-8 lg:p-10 text-white">
+            <h3 className="text-2xl lg:text-3xl font-bold mb-4">
+              CSX Estate est votre pilote automatique du suivi client.
+            </h3>
+            <p className="text-blue-100 mb-6">
+              Il ne remplace pas votre CRM. Il ne change pas vos habitudes.
+            </p>
+            <p className="text-white font-medium mb-4">Il s&apos;assure simplement que :</p>
+            <div className="space-y-3">
+              {[
+                'Aucun dossier n\'est oublié',
+                'Aucun client n\'est laissé sans réponse',
+                'Aucune opportunité ne disparaît dans le silence',
+              ].map((item, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-300 flex-shrink-0" />
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How it Works */}
+      <section className="py-20 lg:py-28 px-4 bg-slate-50">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-4">Comment ça marche</h2>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
             {[
               {
-                icon: Sparkles,
-                title: 'AI Message Generation',
-                description: 'One click generates the perfect follow-up based on deal stage. Email or WhatsApp, friendly or firm.',
-                color: 'from-purple-500 to-pink-500',
+                step: '1',
+                title: 'Ajoutez vos dossiers',
+                description: '30 secondes par dossier. Import CSV disponible.',
+                icon: LayoutDashboard,
               },
               {
+                step: '2',
+                title: 'Ouvrez CSX Estate chaque matin',
+                description: 'Voyez qui relancer aujourd\'hui en un coup d\'œil.',
                 icon: Clock,
-                title: 'Smart Reminders',
-                description: 'Each deal stage has optimal follow-up timing. Get notified before leads go cold.',
-                color: 'from-amber-500 to-orange-500',
               },
               {
-                icon: Target,
-                title: 'Visual Pipeline',
-                description: 'Drag and drop deals through 15 stages. From first contact to closing, always know where you stand.',
-                color: 'from-blue-500 to-cyan-500',
-              },
-              {
+                step: '3',
+                title: 'Envoyez le message généré',
+                description: 'Email ou WhatsApp. Professionnel. Humain. Prêt à envoyer.',
                 icon: Mail,
-                title: 'Daily Digest',
-                description: 'Every morning, get an email with exactly who needs your attention. No more guessing.',
-                color: 'from-emerald-500 to-teal-500',
+              },
+            ].map((item, i) => (
+              <div key={i} className="bg-white rounded-xl p-6 lg:p-8 border border-slate-200 text-center">
+                <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xl mx-auto mb-4">
+                  {item.step}
+                </div>
+                <h3 className="text-lg font-semibold text-slate-900 mb-2">{item.title}</h3>
+                <p className="text-slate-500">{item.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section id="fonctionnalites" className="py-20 lg:py-28 px-4">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-4">Fonctionnalités</h2>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-6">
+            {[
+              {
+                icon: Bell,
+                title: 'Rappels intelligents',
+                description: 'Vous savez toujours qui relancer. Plus jamais de client oublié.',
+                color: 'bg-amber-100 text-amber-600',
               },
               {
-                icon: BarChart3,
-                title: 'Analytics Dashboard',
-                description: 'Track your pipeline health, conversion rates, and follow-up performance at a glance.',
-                color: 'from-rose-500 to-red-500',
+                icon: PenLine,
+                title: 'Messages adaptés à l\'immobilier',
+                description: 'Pas de texte IA générique. Des messages qui sonnent comme vous.',
+                color: 'bg-purple-100 text-purple-600',
               },
               {
-                icon: Shield,
-                title: 'Bank-Level Security',
-                description: 'Your data is encrypted and isolated. GDPR compliant. We never share or sell your information.',
-                color: 'from-indigo-500 to-violet-500',
+                icon: LayoutDashboard,
+                title: 'Tableau de bord simple',
+                description: 'Pas de CRM compliqué. Juste les priorités du jour.',
+                color: 'bg-blue-100 text-blue-600',
+              },
+              {
+                icon: Zap,
+                title: 'Mise en place en 10 minutes',
+                description: 'Pas de formation. Pas de prise de tête. Vous êtes prêt.',
+                color: 'bg-emerald-100 text-emerald-600',
               },
             ].map((feature, i) => (
-              <div 
-                key={i} 
-                className="group relative bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all hover:-translate-y-1 duration-300"
-              >
-                <div className={`w-12 h-12 bg-gradient-to-r ${feature.color} rounded-xl flex items-center justify-center mb-4`}>
-                  <feature.icon className="w-6 h-6 text-white" />
+              <div key={i} className="flex gap-4 p-6 bg-slate-50 rounded-xl">
+                <div className={`w-12 h-12 ${feature.color} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                  <feature.icon className="w-6 h-6" />
                 </div>
-                <h3 className="text-xl font-semibold text-white mb-2">{feature.title}</h3>
-                <p className="text-white/60">{feature.description}</p>
+                <div>
+                  <h3 className="font-semibold text-slate-900 mb-1">{feature.title}</h3>
+                  <p className="text-slate-500 text-sm">{feature.description}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -451,63 +369,65 @@ export default function LandingPage() {
       </section>
 
       {/* Demo Section */}
-      <section id="demo" className="py-24 px-4">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4">See it in action</h2>
-            <p className="text-lg lg:text-xl text-white/60">Watch how CSX Estate helps you stay on top of every deal</p>
+      <section id="demo" className="py-20 lg:py-28 px-4 bg-slate-50">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-4">Voir CSX Estate en action</h2>
+            <p className="text-lg text-slate-600">30 secondes pour comprendre comment ça fonctionne</p>
           </div>
 
           {/* Video placeholder */}
-          <div className="relative aspect-video bg-gradient-to-br from-white/10 to-white/5 rounded-3xl border border-white/10 overflow-hidden group cursor-pointer hover:border-white/20 transition-all">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 to-purple-600/20" />
+          <div className="relative aspect-video bg-white rounded-2xl border border-slate-200 shadow-lg overflow-hidden group cursor-pointer hover:border-blue-300 transition-all">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-slate-50" />
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-16 h-16 lg:w-20 lg:h-20 bg-white rounded-full flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
-                <Play className="w-6 h-6 lg:w-8 lg:h-8 text-[#0A0A0F] ml-1" />
+              <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                <Play className="w-8 h-8 text-white ml-1" />
               </div>
             </div>
-            <div className="absolute bottom-4 left-4 lg:bottom-6 lg:left-6 text-left">
-              <div className="text-white/60 text-xs lg:text-sm mb-1">Product Demo</div>
-              <div className="text-white font-semibold text-sm lg:text-base">2 min walkthrough</div>
+            <div className="absolute bottom-6 left-6 text-left">
+              <div className="text-slate-400 text-sm mb-1">Démo produit</div>
+              <div className="text-slate-700 font-medium">30 secondes</div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* How it Works */}
-      <section className="py-24 px-4 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/[0.02] to-transparent" />
-        <div className="max-w-7xl mx-auto relative">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4">Start closing more deals in 3 steps</h2>
+      {/* Testimonials */}
+      <section className="py-20 lg:py-28 px-4">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-4">Ce qu&apos;en disent les agents</h2>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-6">
             {[
               {
-                step: '1',
-                title: 'Add your deals',
-                description: 'Import via CSV or add manually. Takes 2 minutes to get started.',
+                quote: 'Je ne perds plus de ventes à cause des relances tardives.',
+                name: 'Sophie',
+                role: 'Agent immobilier',
               },
               {
-                step: '2',
-                title: 'Check your dashboard',
-                description: 'Every morning, see exactly who needs follow-up. No more guessing.',
+                quote: 'On dirait un assistant qui n\'oublie jamais.',
+                name: 'Marc',
+                role: 'Directeur d\'agence',
               },
               {
-                step: '3',
-                title: 'Send AI messages',
-                description: 'Click generate, review, and send. 10 minutes of work in 10 seconds.',
+                quote: 'Je gagne des heures chaque semaine.',
+                name: 'Julien',
+                role: 'Agent indépendant',
               },
-            ].map((item, i) => (
-              <div key={i} className="relative">
-                <div className="text-7xl lg:text-8xl font-bold text-white/5 absolute -top-6 lg:-top-8 -left-2 lg:-left-4">{item.step}</div>
-                <div className="relative bg-white/5 border border-white/10 rounded-2xl p-6 lg:p-8">
-                  <div className="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-lg lg:text-xl font-bold mb-4">
-                    {item.step}
+            ].map((testimonial, i) => (
+              <div key={i} className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+                <Quote className="w-8 h-8 text-blue-200 mb-4" />
+                <p className="text-slate-700 mb-6 italic">&ldquo;{testimonial.quote}&rdquo;</p>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center text-slate-500 font-medium">
+                    {testimonial.name[0]}
                   </div>
-                  <h3 className="text-lg lg:text-xl font-semibold text-white mb-2">{item.title}</h3>
-                  <p className="text-white/60">{item.description}</p>
+                  <div>
+                    <div className="font-medium text-slate-900">{testimonial.name}</div>
+                    <div className="text-sm text-slate-500">{testimonial.role}</div>
+                  </div>
                 </div>
               </div>
             ))}
@@ -515,160 +435,141 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ROI Section */}
+      <section className="py-20 lg:py-28 px-4 bg-blue-600">
+        <div className="max-w-3xl mx-auto text-center text-white">
+          <h2 className="text-3xl lg:text-4xl font-bold mb-4">
+            Une seule vente sauvée rembourse l&apos;année.
+          </h2>
+          <p className="text-xl text-blue-100 mb-8">
+            Si CSX Estate vous permet de conclure une vente de plus par an, l&apos;outil est déjà rentabilisé.
+          </p>
+          <div className="inline-flex items-center gap-4 bg-white/10 rounded-xl px-6 py-4">
+            <div className="text-left">
+              <div className="text-3xl font-bold">79€ × 12 = 948€</div>
+              <div className="text-blue-200">Coût annuel</div>
+            </div>
+            <div className="text-4xl">→</div>
+            <div className="text-left">
+              <div className="text-3xl font-bold text-emerald-300">5 000€ - 15 000€</div>
+              <div className="text-blue-200">Commission moyenne</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Pricing */}
-      <section id="pricing" className="py-24 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
-              Simple pricing.{' '}
-              <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">Serious results.</span>
-            </h2>
-            <p className="text-lg lg:text-xl text-white/60">
-              If this saves you just one deal per year, it pays for itself 10x over.
-            </p>
+      <section id="tarifs" className="py-20 lg:py-28 px-4">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-4">Tarifs simples</h2>
           </div>
 
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {/* Solo Plan */}
-            <div className="relative bg-gradient-to-b from-white/10 to-white/5 rounded-3xl border border-white/20 p-6 lg:p-8 overflow-hidden">
-              <div className="absolute top-0 right-0 w-40 h-40 bg-blue-500/20 rounded-full blur-3xl" />
-              <div className="relative">
-                <div className="inline-flex px-3 py-1 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-xs font-semibold rounded-full mb-4">
-                  MOST POPULAR
-                </div>
-                <h3 className="text-xl lg:text-2xl font-bold text-white mb-2">Solo Agent</h3>
-                <p className="text-white/60 mb-6">Everything you need to close more deals</p>
-                <div className="mb-6">
-                  <span className="text-4xl lg:text-5xl font-bold text-white">€79</span>
-                  <span className="text-white/60">/month</span>
-                </div>
-                <ul className="space-y-3 lg:space-y-4 mb-8">
-                  {[
-                    'Unlimited deals',
-                    'Unlimited AI messages',
-                    'Email & WhatsApp generation',
-                    'Visual pipeline view',
-                    'Daily email reminders',
-                    'Analytics dashboard',
-                    'CSV import',
-                  ].map((feature, i) => (
-                    <li key={i} className="flex items-center gap-3 text-white/80 text-sm lg:text-base">
-                      <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-                <Link 
-                  href="/login" 
-                  className="block w-full py-3 lg:py-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-semibold rounded-xl text-center hover:shadow-lg hover:shadow-blue-500/25 transition-all"
-                >
-                  Start 7-Day Free Trial
-                </Link>
-                <p className="text-center text-sm text-white/40 mt-4">No credit card required</p>
+            <div className="relative bg-white rounded-2xl p-8 border-2 border-blue-600 shadow-lg">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-blue-600 text-white text-sm font-medium rounded-full">
+                Le plus populaire
               </div>
+              <div className="text-center mb-6">
+                <h3 className="text-xl font-bold text-slate-900 mb-1">Agent Solo</h3>
+                <p className="text-slate-500 text-sm">Tout ce qu&apos;il faut pour ne plus perdre de ventes</p>
+              </div>
+              <div className="text-center mb-6">
+                <span className="text-5xl font-bold text-slate-900">79€</span>
+                <span className="text-slate-500"> / mois</span>
+              </div>
+              <ul className="space-y-3 mb-8">
+                {[
+                  'Dossiers illimités',
+                  'Messages IA illimités',
+                  'Email + WhatsApp',
+                  'Tableau de suivi intelligent',
+                  'Essai gratuit 7 jours',
+                ].map((feature, i) => (
+                  <li key={i} className="flex items-center gap-3 text-slate-700">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+              <Link 
+                href="/login" 
+                className="block w-full py-4 bg-blue-600 text-white font-semibold rounded-lg text-center hover:bg-blue-700 transition-colors"
+              >
+                Démarrer l&apos;essai gratuit
+              </Link>
+              <p className="text-center text-sm text-slate-400 mt-3">Sans carte bancaire</p>
             </div>
 
             {/* Agency Plan */}
-            <div className="relative bg-white/5 rounded-3xl border border-white/10 p-6 lg:p-8">
-              <h3 className="text-xl lg:text-2xl font-bold text-white mb-2">Agency</h3>
-              <p className="text-white/60 mb-6">For teams of 5+ agents</p>
-              <div className="mb-6">
-                <span className="text-4xl lg:text-5xl font-bold text-white">€59</span>
-                <span className="text-white/60">/agent/month</span>
+            <div className="bg-slate-50 rounded-2xl p-8 border border-slate-200">
+              <div className="text-center mb-6">
+                <h3 className="text-xl font-bold text-slate-900 mb-1">Agence</h3>
+                <p className="text-slate-500 text-sm">Pour les équipes de 5+ agents</p>
               </div>
-              <ul className="space-y-3 lg:space-y-4 mb-8">
+              <div className="text-center mb-6">
+                <span className="text-5xl font-bold text-slate-900">59€</span>
+                <span className="text-slate-500"> / agent / mois</span>
+              </div>
+              <ul className="space-y-3 mb-8">
                 {[
-                  'Everything in Solo',
+                  'Toutes les fonctions Solo',
                   'Minimum 5 agents',
-                  'Centralized billing',
-                  'Priority support',
-                  'Dedicated onboarding',
-                  'Early access to features',
-                  'Custom integrations (soon)',
+                  'Facturation centralisée',
+                  'Support prioritaire',
+                  'Onboarding dédié',
                 ].map((feature, i) => (
-                  <li key={i} className="flex items-center gap-3 text-white/80 text-sm lg:text-base">
-                    <CheckCircle2 className="w-5 h-5 text-white/40 flex-shrink-0" />
+                  <li key={i} className="flex items-center gap-3 text-slate-700">
+                    <CheckCircle2 className="w-5 h-5 text-slate-400 flex-shrink-0" />
                     {feature}
                   </li>
                 ))}
               </ul>
               <a 
                 href="mailto:contact@csx-estate.com" 
-                className="block w-full py-3 lg:py-4 bg-white/10 border border-white/20 text-white font-semibold rounded-xl text-center hover:bg-white/20 transition-all"
+                className="block w-full py-4 bg-white text-slate-700 font-semibold rounded-lg text-center border border-slate-200 hover:bg-slate-100 transition-colors"
               >
-                Contact Sales
+                Contacter l&apos;équipe
               </a>
-            </div>
-          </div>
-
-          {/* ROI Calculator */}
-          <div className="mt-16 max-w-2xl mx-auto">
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 lg:p-8 text-center">
-              <h3 className="text-lg lg:text-xl font-bold text-white mb-6">The math is simple</h3>
-              <div className="grid grid-cols-3 gap-4 mb-6">
-                <div>
-                  <div className="text-2xl lg:text-3xl font-bold text-white">€79</div>
-                  <div className="text-xs lg:text-sm text-white/60">Monthly cost</div>
-                </div>
-                <div>
-                  <div className="text-2xl lg:text-3xl font-bold text-white">×12</div>
-                  <div className="text-xs lg:text-sm text-white/60">Months</div>
-                </div>
-                <div>
-                  <div className="text-2xl lg:text-3xl font-bold text-emerald-400">=€948</div>
-                  <div className="text-xs lg:text-sm text-white/60">Per year</div>
-                </div>
-              </div>
-              <div className="pt-6 border-t border-white/10">
-                <p className="text-white/80 text-sm lg:text-base">
-                  Average commission on one deal: <span className="text-white font-semibold">€5,000 - €15,000</span>
-                </p>
-                <p className="text-white/60 mt-2 text-sm lg:text-base">
-                  Save one deal per year = <span className="text-emerald-400 font-semibold">5x to 15x ROI</span>
-                </p>
-              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* FAQ */}
-      <section id="faq" className="py-24 px-4">
+      <section id="faq" className="py-20 lg:py-28 px-4 bg-slate-50">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4">Frequently Asked Questions</h2>
+            <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-4">Questions fréquentes</h2>
           </div>
 
           <div className="space-y-4">
             {[
               {
-                q: "I'm already using a CRM. Why do I need this?",
-                a: "Most CRMs are built for sales teams, not real estate. They don't understand deal stages like 'post-viewing' or 'waiting on notary'. CSX Estate is built specifically for how agents actually work, with AI that writes real estate messages—not generic sales follow-ups."
+                q: 'Est-ce que ça remplace mon CRM ?',
+                a: 'Non. CSX Estate fonctionne à côté de votre CRM actuel. Il se concentre uniquement sur les relances.',
               },
               {
-                q: "How is this different from just using ChatGPT?",
-                a: "ChatGPT doesn't know your clients, your deal stages, or when to follow up. You'd have to explain everything every time. CSX Estate knows the context—it sees the client name, property, deal stage, and last contact date, then generates the right message instantly."
+                q: 'Combien de temps pour commencer ?',
+                a: 'Environ 10 minutes. Ajoutez quelques dossiers et vous êtes prêt.',
               },
               {
-                q: "Can I cancel anytime?",
-                a: "Yes. No contracts, no cancellation fees. Cancel from your settings page in one click. Your data stays available until the end of your billing period."
+                q: 'Est-ce facile à utiliser ?',
+                a: 'Si vous savez envoyer un email, vous savez utiliser CSX Estate. Pas de formation nécessaire.',
               },
               {
-                q: "Is my client data secure?",
-                a: "Yes. We use Supabase (enterprise-grade PostgreSQL) with row-level security. Your data is encrypted and completely isolated from other users. We never share or sell your data."
-              },
-              {
-                q: "How long does it take to set up?",
-                a: "About 5 minutes. Sign up, add a few deals manually or import via CSV, and you're ready. No training required—if you can use email, you can use CSX Estate."
+                q: 'Puis-je tester sans engagement ?',
+                a: 'Oui. Essai gratuit 7 jours, sans carte bancaire. Annulation à tout moment.',
               },
             ].map((item, i) => (
-              <details key={i} className="group bg-white/5 border border-white/10 rounded-xl overflow-hidden">
-                <summary className="flex items-center justify-between p-5 lg:p-6 cursor-pointer list-none">
-                  <span className="font-medium text-white pr-4 text-sm lg:text-base">{item.q}</span>
-                  <ChevronDown className="w-5 h-5 text-white/60 group-open:rotate-180 transition-transform flex-shrink-0" />
+              <details key={i} className="group bg-white border border-slate-200 rounded-xl overflow-hidden">
+                <summary className="flex items-center justify-between p-5 cursor-pointer list-none">
+                  <span className="font-medium text-slate-900">{item.q}</span>
+                  <ChevronDown className="w-5 h-5 text-slate-400 group-open:rotate-180 transition-transform" />
                 </summary>
-                <div className="px-5 lg:px-6 pb-5 lg:pb-6">
-                  <p className="text-white/60 text-sm lg:text-base">{item.a}</p>
+                <div className="px-5 pb-5">
+                  <p className="text-slate-600">{item.a}</p>
                 </div>
               </details>
             ))}
@@ -677,47 +578,43 @@ export default function LandingPage() {
       </section>
 
       {/* Final CTA */}
-      <section className="py-24 px-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="relative bg-gradient-to-r from-blue-600 to-cyan-600 rounded-3xl p-8 lg:p-12 overflow-hidden">
-            <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }} />
-            <div className="relative text-center">
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4">
-                Stop losing deals to forgotten follow-ups
-              </h2>
-              <p className="text-lg lg:text-xl text-white/80 mb-8 max-w-2xl mx-auto">
-                Join agents who use AI to stay on top of every client. 7-day free trial, no credit card required.
-              </p>
-              <Link 
-                href="/login" 
-                className="inline-flex items-center gap-2 px-6 lg:px-8 py-3 lg:py-4 bg-white text-blue-600 font-semibold rounded-full hover:shadow-xl hover:scale-105 transition-all"
-              >
-                Start Your Free Trial
-                <ArrowRight className="w-5 h-5" />
-              </Link>
-            </div>
-          </div>
+      <section className="py-20 lg:py-28 px-4">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-4">
+            Ne perdez plus de ventes à cause du silence.
+          </h2>
+          <p className="text-lg text-slate-600 mb-8">
+            Rejoignez les agents qui utilisent l&apos;IA pour ne plus jamais oublier un suivi.
+          </p>
+          <Link 
+            href="/login" 
+            className="inline-flex items-center gap-2 px-8 py-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/25"
+          >
+            Démarrer l&apos;essai gratuit
+            <ArrowRight className="w-5 h-5" />
+          </Link>
+          <p className="text-sm text-slate-400 mt-4">Sans stress. Annulation à tout moment.</p>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-4 border-t border-white/5">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center">
-                <Building2 className="w-5 h-5 text-white" />
+      <footer className="py-10 px-4 border-t border-slate-200 bg-slate-50">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <Building2 className="w-4 h-4 text-white" />
               </div>
-              <span className="font-bold text-xl">CSX Estate</span>
+              <span className="font-bold text-slate-900">CSX Estate</span>
             </div>
-            <div className="flex items-center gap-6 text-sm text-white/40">
-              <a href="mailto:contact@csx-estate.com" className="hover:text-white transition-colors">Contact</a>
-              <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-              <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
+            <div className="flex items-center gap-6 text-sm text-slate-500">
+              <a href="mailto:contact@csx-estate.com" className="hover:text-slate-900 transition-colors">Contact</a>
+              <a href="#" className="hover:text-slate-900 transition-colors">Confidentialité</a>
+              <a href="#" className="hover:text-slate-900 transition-colors">CGV</a>
             </div>
           </div>
-          <p className="text-center text-sm text-white/40 mt-8">
-            © {new Date().getFullYear()} CSX Estate. All rights reserved.
+          <p className="text-center text-sm text-slate-400 mt-6">
+            © {new Date().getFullYear()} CSX Estate. Tous droits réservés.
           </p>
         </div>
       </footer>
