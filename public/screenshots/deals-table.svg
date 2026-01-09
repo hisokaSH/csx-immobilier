@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 600" fill="none">
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1100" height="600" fill="#F8FAFC"/>
+  
+  <!-- Header -->
+  <text x="40" y="45" font-family="system-ui, sans-serif" font-size="24" font-weight="600" fill="#1E293B">Deals</text>
+  <text x="40" y="70" font-family="system-ui, sans-serif" font-size="14" fill="#64748B">Manage your clients and deal pipeline</text>
+  
+  <!-- View Toggle -->
+  <rect x="720" y="30" width="140" height="40" rx="8" fill="#F1F5F9"/>
+  <rect x="725" y="35" width="65" height="30" rx="6" fill="white"/>
+  <text x="740" y="55" font-family="system-ui, sans-serif" font-size="12" font-weight="500" fill="#1E293B">Table</text>
+  <text x="805" y="55" font-family="system-ui, sans-serif" font-size="12" fill="#64748B">Pipeline</text>
+  
+  <!-- Import CSV Button -->
+  <rect x="880" y="30" width="100" height="40" rx="8" fill="white" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="900" y="55" font-family="system-ui, sans-serif" font-size="13" fill="#475569">📤 Import CSV</text>
+  
+  <!-- New Deal Button -->
+  <rect x="995" y="30" width="90" height="40" rx="8" fill="#2563EB"/>
+  <text x="1010" y="55" font-family="system-ui, sans-serif" font-size="13" font-weight="500" fill="white">+ New Deal</text>
+  
+  <!-- Search Bar -->
+  <rect x="40" y="100" width="350" height="42" rx="8" fill="white" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="60" y="127" font-family="system-ui, sans-serif" font-size="14" fill="#94A3B8">🔍 Search by name or address...</text>
+  
+  <!-- Filters Button -->
+  <rect x="405" y="100" width="90" height="42" rx="8" fill="white" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="425" y="127" font-family="system-ui, sans-serif" font-size="13" fill="#475569">☰ Filters</text>
+  
+  <!-- Tabs -->
+  <text x="40" y="175" font-family="system-ui, sans-serif" font-size="14" font-weight="500" fill="#1E293B">Active (12)</text>
+  <rect x="40" y="182" width="70" height="2" fill="#2563EB"/>
+  <text x="140" y="175" font-family="system-ui, sans-serif" font-size="14" fill="#64748B">Archived (0)</text>
+  
+  <!-- Table -->
+  <g filter="url(#shadow)">
+    <rect x="40" y="200" width="1020" height="380" rx="12" fill="white"/>
+    
+    <!-- Table Header -->
+    <rect x="40" y="200" width="1020" height="45" rx="12" fill="#F8FAFC"/>
+    <text x="60" y="228" font-family="system-ui, sans-serif" font-size="12" font-weight="600" fill="#64748B">CLIENT</text>
+    <text x="250" y="228" font-family="system-ui, sans-serif" font-size="12" font-weight="600" fill="#64748B">PROPERTY</text>
+    <text x="520" y="228" font-family="system-ui, sans-serif" font-size="12" font-weight="600" fill="#64748B">STAGE</text>
+    <text x="700" y="228" font-family="system-ui, sans-serif" font-size="12" font-weight="600" fill="#64748B">LAST CONTACT</text>
+    <text x="850" y="228" font-family="system-ui, sans-serif" font-size="12" font-weight="600" fill="#64748B">STATUS</text>
+    
+    <!-- Row 1 -->
+    <line x1="40" y1="245" x2="1060" y2="245" stroke="#F1F5F9" stroke-width="1"/>
+    <text x="60" y="275" font-family="system-ui, sans-serif" font-size="14" font-weight="500" fill="#1E293B">Marie Dupont</text>
+    <text x="60" y="292" font-family="system-ui, sans-serif" font-size="12" fill="#64748B">Buyer</text>
+    <text x="250" y="283" font-family="system-ui, sans-serif" font-size="13" fill="#475569">📍 15 Rue de la Paix, Paris</text>
+    <rect x="520" y="268" width="85" height="24" rx="5" fill="#DBEAFE"/>
+    <text x="532" y="285" font-family="system-ui, sans-serif" font-size="11" font-weight="500" fill="#1D4ED8">Post-Viewing</text>
+    <text x="700" y="283" font-family="system-ui, sans-serif" font-size="13" fill="#64748B">4 days ago</text>
+    <rect x="850" y="268" width="75" height="24" rx="5" fill="#FEE2E2"/>
+    <text x="860" y="285" font-family="system-ui, sans-serif" font-size="11" font-weight="500" fill="#DC2626">3d overdue</text>
+    
+    <!-- Row 2 -->
+    <line x1="40" y1="305" x2="1060" y2="305" stroke="#F1F5F9" stroke-width="1"/>
+    <text x="60" y="335" font-family="system-ui, sans-serif" font-size="14" font-weight="500" fill="#1E293B">Jean-Pierre Martin</text>
+    <text x="60" y="352" font-family="system-ui, sans-serif" font-size="12" fill="#64748B">Seller</text>
+    <text x="250" y="343" font-family="system-ui, sans-serif" font-size="13" fill="#475569">📍 8 Avenue Victor Hugo, Lyon</text>
+    <rect x="520" y="328" width="90" height="24" rx="5" fill="#FEF3C7"/>
+    <text x="532" y="345" font-family="system-ui, sans-serif" font-size="11" font-weight="500" fill="#B45309">Offer Received</text>
+    <text x="700" y="343" font-family="system-ui, sans-serif" font-size="13" fill="#64748B">3 days ago</text>
+    <rect x="850" y="328" width="75" height="24" rx="5" fill="#FEE2E2"/>
+    <text x="860" y="345" font-family="system-ui, sans-serif" font-size="11" font-weight="500" fill="#DC2626">2d overdue</text>
+    
+    <!-- Row 3 -->
+    <line x1="40" y1="365" x2="1060" y2="365" stroke="#F1F5F9" stroke-width="1"/>
+    <text x="60" y="395" font-family="system-ui, sans-serif" font-size="14" font-weight="500" fill="#1E293B">Sophie Bernard</text>
+    <text x="60" y="412" font-family="system-ui, sans-serif" font-size="12" fill="#64748B">Buyer</text>
+    <text x="250" y="403" font-family="system-ui, sans-serif" font-size="13" fill="#475569">📍 42 Boulevard Haussmann, Paris</text>
+    <rect x="520" y="388" width="100" height="24" rx="5" fill="#DBEAFE"/>
+    <text x="532" y="405" font-family="system-ui, sans-serif" font-size="11" font-weight="500" fill="#1D4ED8">Financing Check</text>
+    <text x="700" y="403" font-family="system-ui, sans-serif" font-size="13" fill="#64748B">5 days ago</text>
+    <rect x="850" y="388" width="75" height="24" rx="5" fill="#FEE2E2"/>
+    <text x="860" y="405" font-family="system-ui, sans-serif" font-size="11" font-weight="500" fill="#DC2626">2d overdue</text>
+    
+    <!-- Row 4 -->
+    <line x1="40" y1="425" x2="1060" y2="425" stroke="#F1F5F9" stroke-width="1"/>
+    <text x="60" y="455" font-family="system-ui, sans-serif" font-size="14" font-weight="500" fill="#1E293B">Lucas Moreau</text>
+    <text x="60" y="472" font-family="system-ui, sans-serif" font-size="12" fill="#64748B">Buyer</text>
+    <text x="250" y="463" font-family="system-ui, sans-serif" font-size="13" fill="#475569">📍 23 Rue du Commerce, Paris</text>
+    <rect x="520" y="448" width="100" height="24" rx="5" fill="#DBEAFE"/>
+    <text x="532" y="465" font-family="system-ui, sans-serif" font-size="11" font-weight="500" fill="#1D4ED8">New Lead (Buyer)</text>
+    <text x="700" y="463" font-family="system-ui, sans-serif" font-size="13" fill="#64748B">1 day ago</text>
+    <rect x="850" y="448" width="65" height="24" rx="5" fill="#FEF3C7"/>
+    <text x="860" y="465" font-family="system-ui, sans-serif" font-size="11" font-weight="500" fill="#B45309">Due today</text>
+    
+    <!-- Row 5 -->
+    <line x1="40" y1="485" x2="1060" y2="485" stroke="#F1F5F9" stroke-width="1"/>
+    <text x="60" y="515" font-family="system-ui, sans-serif" font-size="14" font-weight="500" fill="#1E293B">Emma Petit</text>
+    <text x="60" y="532" font-family="system-ui, sans-serif" font-size="12" fill="#64748B">Seller</text>
+    <text x="250" y="523" font-family="system-ui, sans-serif" font-size="13" fill="#475569">📍 156 Avenue Jean Jaurès, Lyon</text>
+    <rect x="520" y="508" width="100" height="24" rx="5" fill="#F0FDF4"/>
+    <text x="532" y="525" font-family="system-ui, sans-serif" font-size="11" font-weight="500" fill="#15803D">New Lead (Seller)</text>
+    <text x="700" y="523" font-family="system-ui, sans-serif" font-size="13" fill="#64748B">1 day ago</text>
+    <rect x="850" y="508" width="65" height="24" rx="5" fill="#FEF3C7"/>
+    <text x="860" y="525" font-family="system-ui, sans-serif" font-size="11" font-weight="500" fill="#B45309">Due today</text>
+    
+    <!-- Row 6 -->
+    <line x1="40" y1="545" x2="1060" y2="545" stroke="#F1F5F9" stroke-width="1"/>
+    <text x="60" y="573" font-family="system-ui, sans-serif" font-size="14" font-weight="500" fill="#1E293B">Camille Fournier</text>
+    <text x="60" y="590" font-family="system-ui, sans-serif" font-size="12" fill="#64748B">Buyer</text>
+    <text x="250" y="581" font-family="system-ui, sans-serif" font-size="13" fill="#475569">📍 34 Quai des Chartrons, Bordeaux</text>
+    <rect x="520" y="566" width="110" height="24" rx="5" fill="#FEF3C7"/>
+    <text x="532" y="583" font-family="system-ui, sans-serif" font-size="11" font-weight="500" fill="#B45309">Offer Preparation</text>
+    <text x="700" y="581" font-family="system-ui, sans-serif" font-size="13" fill="#64748B">1 day ago</text>
+    <rect x="850" y="566" width="80" height="24" rx="5" fill="#DCFCE7"/>
+    <text x="860" y="583" font-family="system-ui, sans-serif" font-size="11" font-weight="500" fill="#15803D">1d remaining</text>
+  </g>
+</svg>

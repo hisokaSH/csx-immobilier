@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 700" fill="none">
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-opacity="0.08"/>
+    </filter>
+    <linearGradient id="btnGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#2563EB"/>
+      <stop offset="100%" style="stop-color:#1D4ED8"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="900" height="700" fill="#F8FAFC"/>
+  
+  <!-- Left Panel - Deal Details -->
+  <g filter="url(#shadow)">
+    <rect x="30" y="30" width="380" height="640" rx="16" fill="white"/>
+    
+    <!-- Header -->
+    <text x="55" y="65" font-family="system-ui, sans-serif" font-size="18" font-weight="600" fill="#1E293B">Deal Details</text>
+    
+    <!-- Overdue Badge -->
+    <rect x="55" y="85" width="90" height="26" rx="6" fill="#FEE2E2"/>
+    <text x="68" y="103" font-family="system-ui, sans-serif" font-size="12" font-weight="500" fill="#DC2626">3 days overdue</text>
+    
+    <!-- Client Info -->
+    <circle cx="80" cy="150" r="24" fill="#EFF6FF"/>
+    <text x="78" y="156" font-family="system-ui, sans-serif" font-size="16" fill="#3B82F6">👤</text>
+    <text x="115" y="145" font-family="system-ui, sans-serif" font-size="17" font-weight="600" fill="#1E293B">Marie Dupont</text>
+    <text x="115" y="165" font-family="system-ui, sans-serif" font-size="13" fill="#64748B">Buyer</text>
+    
+    <!-- Contact Details -->
+    <text x="55" y="205" font-family="system-ui, sans-serif" font-size="13" fill="#64748B">✉️  marie.dupont@email.fr</text>
+    <text x="230" y="205" font-family="system-ui, sans-serif" font-size="13" fill="#64748B">📞  +33 6 12 34 56 78</text>
+    <text x="55" y="235" font-family="system-ui, sans-serif" font-size="13" fill="#64748B">📍  15 Rue de la Paix, 75002 Paris</text>
+    
+    <!-- Current Stage -->
+    <text x="55" y="280" font-family="system-ui, sans-serif" font-size="12" fill="#94A3B8">Current Stage</text>
+    <rect x="55" y="290" width="95" height="28" rx="6" fill="#DBEAFE"/>
+    <text x="68" y="309" font-family="system-ui, sans-serif" font-size="12" font-weight="500" fill="#1D4ED8">Post-Viewing</text>
+    <text x="55" y="340" font-family="system-ui, sans-serif" font-size="12" fill="#64748B">Follow-up after viewing</text>
+    
+    <!-- Last Contact -->
+    <text x="55" y="385" font-family="system-ui, sans-serif" font-size="12" fill="#94A3B8">Last Contact</text>
+    <text x="55" y="408" font-family="system-ui, sans-serif" font-size="14" fill="#1E293B">4 days ago (Dec 29, 2025)</text>
+    
+    <!-- Mark Contacted Button -->
+    <rect x="200" y="385" width="120" height="36" rx="8" fill="white" stroke="#E2E8F0" stroke-width="1"/>
+    <text x="220" y="408" font-family="system-ui, sans-serif" font-size="13" fill="#475569">Mark Contacted</text>
+    
+    <!-- Notes -->
+    <text x="55" y="460" font-family="system-ui, sans-serif" font-size="12" fill="#94A3B8">Notes</text>
+    <text x="55" y="485" font-family="system-ui, sans-serif" font-size="14" fill="#1E293B">Very interested in the 3-bedroom apartment.</text>
+    <text x="55" y="505" font-family="system-ui, sans-serif" font-size="14" fill="#1E293B">Wants to schedule second viewing.</text>
+    
+    <!-- Action Buttons -->
+    <rect x="55" y="560" width="100" height="40" rx="8" fill="white" stroke="#E2E8F0" stroke-width="1"/>
+    <text x="75" y="585" font-family="system-ui, sans-serif" font-size="13" fill="#475569">📦 Archive</text>
+    
+    <rect x="170" y="560" width="90" height="40" rx="8" fill="white" stroke="#FEE2E2" stroke-width="1"/>
+    <text x="192" y="585" font-family="system-ui, sans-serif" font-size="13" fill="#DC2626">🗑️ Delete</text>
+  </g>
+  
+  <!-- Right Panel - Message Generator -->
+  <g filter="url(#shadow)">
+    <rect x="430" y="30" width="440" height="640" rx="16" fill="white"/>
+    
+    <!-- Header -->
+    <text x="455" y="65" font-family="system-ui, sans-serif" font-size="18" font-weight="600" fill="#1E293B">✨ Generate Message</text>
+    
+    <!-- Channel & Tone Selectors -->
+    <text x="455" y="100" font-family="system-ui, sans-serif" font-size="12" fill="#94A3B8">Channel</text>
+    <rect x="455" y="110" width="180" height="42" rx="8" fill="white" stroke="#E2E8F0" stroke-width="1"/>
+    <text x="475" y="137" font-family="system-ui, sans-serif" font-size="14" fill="#1E293B">Email</text>
+    <text x="610" y="137" font-family="system-ui, sans-serif" font-size="12" fill="#94A3B8">▼</text>
+    
+    <text x="655" y="100" font-family="system-ui, sans-serif" font-size="12" fill="#94A3B8">Tone</text>
+    <rect x="655" y="110" width="180" height="42" rx="8" fill="white" stroke="#E2E8F0" stroke-width="1"/>
+    <text x="675" y="137" font-family="system-ui, sans-serif" font-size="14" fill="#1E293B">Friendly</text>
+    <text x="810" y="137" font-family="system-ui, sans-serif" font-size="12" fill="#94A3B8">▼</text>
+    
+    <!-- Generate Button -->
+    <rect x="455" y="170" width="380" height="46" rx="10" fill="url(#btnGradient)"/>
+    <text x="580" y="199" font-family="system-ui, sans-serif" font-size="15" font-weight="500" fill="white">✨ Generate Message</text>
+    
+    <!-- Generated Message -->
+    <rect x="455" y="235" width="380" height="300" rx="10" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1"/>
+    
+    <text x="475" y="265" font-family="system-ui, sans-serif" font-size="13" font-weight="600" fill="#64748B">Subject: Follow-up - 15 Rue de la Paix viewing</text>
+    
+    <text x="475" y="300" font-family="system-ui, sans-serif" font-size="14" fill="#1E293B">Dear Marie,</text>
+    
+    <text x="475" y="335" font-family="system-ui, sans-serif" font-size="14" fill="#1E293B">Thank you for taking the time to visit 15 Rue de la</text>
+    <text x="475" y="355" font-family="system-ui, sans-serif" font-size="14" fill="#1E293B">Paix yesterday. I hope the apartment met your</text>
+    <text x="475" y="375" font-family="system-ui, sans-serif" font-size="14" fill="#1E293B">expectations!</text>
+    
+    <text x="475" y="410" font-family="system-ui, sans-serif" font-size="14" fill="#1E293B">I'd love to hear your thoughts:</text>
+    <text x="475" y="435" font-family="system-ui, sans-serif" font-size="14" fill="#1E293B">1. What was your overall impression?</text>
+    <text x="475" y="455" font-family="system-ui, sans-serif" font-size="14" fill="#1E293B">2. Any concerns we should discuss?</text>
+    <text x="475" y="475" font-family="system-ui, sans-serif" font-size="14" fill="#1E293B">3. Would you like a second viewing?</text>
+    
+    <text x="475" y="510" font-family="system-ui, sans-serif" font-size="14" fill="#1E293B">Looking forward to your reply!</text>
+    <text x="475" y="530" font-family="system-ui, sans-serif" font-size="14" fill="#1E293B">Best regards, Agent</text>
+    
+    <!-- Action Buttons -->
+    <rect x="455" y="555" width="100" height="40" rx="8" fill="white" stroke="#E2E8F0" stroke-width="1"/>
+    <text x="480" y="580" font-family="system-ui, sans-serif" font-size="13" fill="#475569">📋 Copy</text>
+    
+    <rect x="565" y="555" width="130" height="40" rx="8" fill="white" stroke="#E2E8F0" stroke-width="1"/>
+    <text x="585" y="580" font-family="system-ui, sans-serif" font-size="13" fill="#475569">✉️ Open in Email</text>
+    
+    <rect x="705" y="555" width="130" height="40" rx="8" fill="white" stroke="#E2E8F0" stroke-width="1"/>
+    <text x="720" y="580" font-family="system-ui, sans-serif" font-size="13" fill="#475569">💬 Open WhatsApp</text>
+    
+    <!-- Auto-saved text -->
+    <text x="455" y="620" font-family="system-ui, sans-serif" font-size="12" fill="#94A3B8">✓ Message auto-saved to history</text>
+  </g>
+</svg>
